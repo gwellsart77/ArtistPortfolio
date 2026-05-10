@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+server/public/
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Replit internal directories
+.config/
+.local/
+
+# Local artifacts & temp files
+backups/
+attached_assets/
+after_load.png
+generated-icon.png
+*.tar.gz
+*.png.tmp
+
+# Vite
+vite.config.ts.*
+
+# OS
+.DS_Store
+Thumbs.db

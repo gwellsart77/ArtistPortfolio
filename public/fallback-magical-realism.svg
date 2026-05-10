@@ -1,0 +1,8 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#f1f5f9"/>
+  <path d="M400 150 L500 350 L300 350 Z" fill="#4a5568" opacity="0.7"/>
+  <path d="M200 200 L350 250 L250 400 Z" fill="#b8860b" opacity="0.5"/>
+  <circle cx="600" cy="250" r="80" fill="#718096" opacity="0.6"/>
+  <text x="400" y="480" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#2d3748">Magical Realism Artwork</text>
+  <text x="400" y="520" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#4a5568">Image temporarily unavailable</text>
+</svg>

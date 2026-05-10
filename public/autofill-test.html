@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barebones Address Autofill Test</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        fieldset { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        legend { font-weight: bold; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="email"] { margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; width: 300px; }
+        .form-group { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Address Autofill Diagnostic Test</h1>
+    <p>This is a completely static HTML file with no React, JavaScript, or complex CSS to test if the issue is environmental.</p>
+    
+    <form autocomplete="on">
+        <fieldset>
+            <legend>Shipping Address</legend>
+            <div class="form-group">
+                <label for="street-address">Street Address</label>
+                <input type="text" id="street-address" name="street-address" autocomplete="street-address" />
+            </div>
+            <div class="form-group">
+                <label for="address-level2">City</label>
+                <input type="text" id="address-level2" name="address-level2" autocomplete="address-level2" />
+            </div>
+            <div class="form-group">
+                <label for="address-level1">State</label>
+                <input type="text" id="address-level1" name="address-level1" autocomplete="address-level1" />
+            </div>
+            <div class="form-group">
+                <label for="postal-code">ZIP Code</label>
+                <input type="text" id="postal-code" name="postal-code" autocomplete="postal-code" />
+            </div>
+            <div class="form-group">
+                <label for="country">Country</label>
+                <input type="text" id="country" name="country" autocomplete="country" />
+            </div>
+        </fieldset>
+        <button type="submit">Submit (Does Nothing)</button>
+    </form>
+    
+    <hr style="margin: 30px 0;">
+    
+    <form autocomplete="on">
+        <fieldset>
+            <legend>Customer Information (Control Test)</legend>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" autocomplete="name" />
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" autocomplete="email" />
+            </div>
+        </fieldset>
+        <button type="submit">Submit (Does Nothing)</button>
+    </form>
+    
+    <div style="margin-top: 30px; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+        <h3>Testing Instructions:</h3>
+        <ol>
+            <li>Click on the "Street Address" field</li>
+            <li>Look for browser autofill suggestions</li>
+            <li>If autofill works here but not in the React app, the issue is React/SPA-related</li>
+            <li>If autofill fails here too, the issue is environmental (browser, extensions, profile)</li>
+        </ol>
+    </div>
+</body>
+</html>

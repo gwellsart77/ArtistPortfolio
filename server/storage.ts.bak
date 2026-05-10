@@ -1,0 +1,782 @@
+import {
+  User,
+  InsertUser,
+  Artwork,
+  InsertArtwork,
+  Product,
+  InsertProduct,
+  ContactMessage,
+  InsertContactMessage,
+  Subscriber,
+  InsertSubscriber,
+  Settings,
+  InsertSettings,
+  ShippingZone,
+  InsertShippingZone,
+  Order,
+  InsertOrder,
+  OrderItem,
+  InsertOrderItem
+} from "@shared/schema";
+
+// Modify the interface with any CRUD methods needed
+export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+
+  // Artwork methods
+  getAllArtworks(): Promise<Artwork[]>;
+  getArtworkById(id: number): Promise<Artwork | undefined>;
+  getArtworksByCategory(category: string): Promise<Artwork[]>;
+  getFeaturedArtworks(): Promise<Artwork[]>;
+  createArtwork(artwork: InsertArtwork): Promise<Artwork>;
+  updateArtworkAvailability(id: number, available: boolean): Promise<Artwork | undefined>;
+  updateArtwork(id: number, artworkData: Partial<InsertArtwork>): Promise<Artwork | undefined>;
+  deleteArtwork(id: number): Promise<boolean>;
+
+  // Product methods
+  getAllProducts(): Promise<Product[]>;
+  getProductById(id: number): Promise<Product | undefined>;
+  getProductsByType(type: string): Promise<Product[]>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProductAvailability(id: number, available: boolean): Promise<Product | undefined>;
+  updateProduct(id: number, productData: Partial<InsertProduct>): Promise<Product | undefined>;
+  deleteProduct(id: number): Promise<boolean>;
+
+  // Contact methods
+  createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
+  
+  // Newsletter methods
+  addSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
+  getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
+  
+  // Settings methods
+  getSetting(key: string): Promise<Settings | undefined>;
+  getAllSettings(): Promise<Settings[]>;
+  upsertSetting(setting: InsertSettings): Promise<Settings>;
+  
+  // Product stock methods
+  updateProductStock(id: number, quantity: number): Promise<Product | undefined>;
+  
+  // Shipping methods
+  createShippingZone(zone: InsertShippingZone): Promise<ShippingZone>;
+  getShippingZoneById(id: number): Promise<ShippingZone | undefined>;
+  getAllShippingZones(): Promise<ShippingZone[]>;
+  getActiveShippingZones(): Promise<ShippingZone[]>;
+  updateShippingZone(id: number, data: Partial<InsertShippingZone>): Promise<ShippingZone | undefined>;
+  deleteShippingZone(id: number): Promise<boolean>;
+  
+  // Order methods
+  createOrder(order: InsertOrder): Promise<Order>;
+  getOrderById(id: number): Promise<Order | undefined>;
+  updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
+  updateOrderPaymentIntent(id: number, paymentIntentId: string): Promise<Order | undefined>;
+  getAllOrders(): Promise<Order[]>;
+  getOrdersByEmail(email: string): Promise<Order[]>;
+  
+  // Order items methods
+  addOrderItem(item: InsertOrderItem): Promise<OrderItem>;
+  getOrderItems(orderId: number): Promise<OrderItem[]>;
+  getOrderItemsWithProductDetails(orderId: number): Promise<Array<OrderItem & { productDetails: Product }>>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private artworks: Map<number, Artwork>;
+  private products: Map<number, Product>;
+  private contactMessages: Map<number, ContactMessage>;
+  private subscribers: Map<number, Subscriber>;
+  private settings: Map<number, Settings>;
+  private shippingZones: Map<number, ShippingZone>;
+  private orders: Map<number, Order>;
+  private orderItems: Map<number, OrderItem>;
+  private userCurrentId: number;
+  private artworkCurrentId: number;
+  private productCurrentId: number;
+  private contactMessageCurrentId: number;
+  private subscriberCurrentId: number;
+  private settingsCurrentId: number;
+  private shippingZoneCurrentId: number;
+  private orderCurrentId: number;
+  private orderItemCurrentId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.artworks = new Map();
+    this.products = new Map();
+    this.contactMessages = new Map();
+    this.subscribers = new Map();
+    this.settings = new Map();
+    this.shippingZones = new Map();
+    this.orders = new Map();
+    this.orderItems = new Map();
+    
+    this.userCurrentId = 1;
+    this.artworkCurrentId = 1;
+    this.productCurrentId = 1;
+    this.contactMessageCurrentId = 1;
+    this.subscriberCurrentId = 1;
+    this.settingsCurrentId = 1;
+    this.shippingZoneCurrentId = 1;
+    this.orderCurrentId = 1;
+    this.orderItemCurrentId = 1;
+    
+    // Initialize with sample data
+    this.initializeData();
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.userCurrentId++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+
+  // Artwork methods
+  async getAllArtworks(): Promise<Artwork[]> {
+    return Array.from(this.artworks.values());
+  }
+
+  async getArtworkById(id: number): Promise<Artwork | undefined> {
+    return this.artworks.get(id);
+  }
+
+  async getArtworksByCategory(category: string): Promise<Artwork[]> {
+    return Array.from(this.artworks.values()).filter(
+      (artwork) => artwork.category === category,
+    );
+  }
+
+  async getFeaturedArtworks(): Promise<Artwork[]> {
+    return Array.from(this.artworks.values()).filter(
+      (artwork) => artwork.featured,
+    );
+  }
+
+  async updateArtworkAvailability(id: number, available: boolean): Promise<Artwork | undefined> {
+    const artwork = this.artworks.get(id);
+    if (!artwork) {
+      return undefined;
+    }
+    
+    const updatedArtwork = { ...artwork, available };
+    this.artworks.set(id, updatedArtwork);
+    return updatedArtwork;
+  }
+  
+  async updateArtwork(id: number, artworkData: Partial<InsertArtwork>): Promise<Artwork | undefined> {
+    const artwork = this.artworks.get(id);
+    if (!artwork) {
+      return undefined;
+    }
+    
+    const updatedArtwork = { ...artwork, ...artworkData };
+    this.artworks.set(id, updatedArtwork);
+    return updatedArtwork;
+  }
+  
+  async deleteArtwork(id: number): Promise<boolean> {
+    if (!this.artworks.has(id)) {
+      return false;
+    }
+    
+    return this.artworks.delete(id);
+  }
+
+  async createArtwork(insertArtwork: InsertArtwork): Promise<Artwork> {
+    const id = this.artworkCurrentId++;
+    const now = new Date();
+    const artwork: Artwork = { ...insertArtwork, id, createdAt: now };
+    this.artworks.set(id, artwork);
+    return artwork;
+  }
+
+  // Product methods
+  async getAllProducts(): Promise<Product[]> {
+    return Array.from(this.products.values());
+  }
+
+  async getProductById(id: number): Promise<Product | undefined> {
+    return this.products.get(id);
+  }
+
+  async getProductsByType(type: string): Promise<Product[]> {
+    return Array.from(this.products.values()).filter(
+      (product) => product.type === type,
+    );
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const id = this.productCurrentId++;
+    const now = new Date();
+    const product: Product = { ...insertProduct, id, createdAt: now };
+    this.products.set(id, product);
+    return product;
+  }
+  
+  async updateProductAvailability(id: number, available: boolean): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+    
+    const updatedProduct = { ...product, available };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+  
+  async updateProduct(id: number, productData: Partial<InsertProduct>): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+    
+    const updatedProduct = { ...product, ...productData };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+  
+  async deleteProduct(id: number): Promise<boolean> {
+    return this.products.delete(id);
+  }
+
+  // Contact methods
+  async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
+    const id = this.contactMessageCurrentId++;
+    const now = new Date();
+    const message: ContactMessage = { ...insertMessage, id, createdAt: now };
+    this.contactMessages.set(id, message);
+    return message;
+  }
+
+  // Newsletter methods
+  async addSubscriber(insertSubscriber: InsertSubscriber): Promise<Subscriber> {
+    const existingSubscriber = await this.getSubscriberByEmail(insertSubscriber.email);
+    if (existingSubscriber) {
+      return existingSubscriber;
+    }
+    
+    const id = this.subscriberCurrentId++;
+    const now = new Date();
+    const subscriber: Subscriber = { ...insertSubscriber, id, createdAt: now };
+    this.subscribers.set(id, subscriber);
+    return subscriber;
+  }
+
+  async getSubscriberByEmail(email: string): Promise<Subscriber | undefined> {
+    return Array.from(this.subscribers.values()).find(
+      (subscriber) => subscriber.email === email,
+    );
+  }
+  
+  // Settings methods
+  async getSetting(key: string): Promise<Settings | undefined> {
+    // Find setting by key
+    return Array.from(this.settings.values()).find(
+      (setting) => setting.key === key,
+    );
+  }
+  
+  async getAllSettings(): Promise<Settings[]> {
+    return Array.from(this.settings.values());
+  }
+  
+  async upsertSetting(settingData: InsertSettings): Promise<Settings> {
+    // Check if setting with this key already exists
+    const existingSetting = await this.getSetting(settingData.key);
+    
+    if (existingSetting) {
+      // Update existing setting
+      const updatedSetting: Settings = { 
+        ...existingSetting, 
+        value: settingData.value,
+        description: settingData.description || existingSetting.description,
+        updatedAt: new Date()
+      };
+      
+      this.settings.set(existingSetting.id, updatedSetting);
+      return updatedSetting;
+    } else {
+      // Create new setting
+      const id = this.settingsCurrentId++;
+      const now = new Date();
+      const setting: Settings = { 
+        ...settingData, 
+        id, 
+        updatedAt: now
+      };
+      
+      this.settings.set(id, setting);
+      return setting;
+    }
+  }
+
+  // Initialize with sample data
+  private initializeData() {
+    // Initialize shipping zones with USPS rates
+    const shippingZonesData: InsertShippingZone[] = [
+      {
+        name: "Domestic - Zone 1 (Local)",
+        description: "Up to 50 miles from Portland",
+        baseRate: 7.95,
+        additionalItemRate: 2.50,
+        active: true
+      },
+      {
+        name: "Domestic - Zone 2 (Regional)",
+        description: "51-300 miles from Portland",
+        baseRate: 9.95,
+        additionalItemRate: 3.75,
+        active: true
+      },
+      {
+        name: "Domestic - Zone 3 (National)",
+        description: "301+ miles within continental US",
+        baseRate: 12.95,
+        additionalItemRate: 4.95,
+        active: true
+      },
+      {
+        name: "International - Zone 1",
+        description: "Canada and Mexico",
+        baseRate: 24.95,
+        additionalItemRate: 12.95,
+        active: true
+      },
+      {
+        name: "International - Zone 2",
+        description: "Rest of World",
+        baseRate: 34.95,
+        additionalItemRate: 17.95,
+        active: true
+      }
+    ];
+    
+    // Add shipping zones to storage
+    shippingZonesData.forEach(zone => {
+      this.createShippingZone(zone);
+    });
+    
+    // Initialize settings
+    const settingsData: InsertSettings[] = [
+      {
+        key: "home_hero_image",
+        value: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=900",
+        description: "URL for the home page hero banner image"
+      }
+    ];
+    
+    // Add settings to storage
+    settingsData.forEach(setting => {
+      this.upsertSetting(setting);
+    });
+    
+    // Sample artworks and products initialization will be handled by existing code
+  }
+  
+  // Product stock methods
+  async updateProductStock(id: number, quantity: number): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+    
+    // Ensure stock doesn't go below 0
+    const newStock = Math.max(0, quantity);
+    const updatedProduct = { ...product, stock: newStock };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+  
+  // Shipping methods
+  async createShippingZone(zone: InsertShippingZone): Promise<ShippingZone> {
+    const id = this.shippingZoneCurrentId++;
+    const shippingZone: ShippingZone = { ...zone, id };
+    this.shippingZones.set(id, shippingZone);
+    return shippingZone;
+  }
+  
+  async getShippingZoneById(id: number): Promise<ShippingZone | undefined> {
+    return this.shippingZones.get(id);
+  }
+  
+  async getAllShippingZones(): Promise<ShippingZone[]> {
+    return Array.from(this.shippingZones.values());
+  }
+  
+  async getActiveShippingZones(): Promise<ShippingZone[]> {
+    return Array.from(this.shippingZones.values()).filter(
+      zone => zone.active
+    );
+  }
+  
+  async updateShippingZone(id: number, data: Partial<InsertShippingZone>): Promise<ShippingZone | undefined> {
+    const zone = this.shippingZones.get(id);
+    if (!zone) return undefined;
+    
+    const updatedZone = { ...zone, ...data };
+    this.shippingZones.set(id, updatedZone);
+    return updatedZone;
+  }
+  
+  async deleteShippingZone(id: number): Promise<boolean> {
+    return this.shippingZones.delete(id);
+  }
+  
+  // Order methods
+  async createOrder(orderData: InsertOrder): Promise<Order> {
+    const id = this.orderCurrentId++;
+    const now = new Date();
+    const order: Order = { 
+      ...orderData, 
+      id, 
+      createdAt: now, 
+      updatedAt: now 
+    };
+    this.orders.set(id, order);
+    return order;
+  }
+  
+  async getOrderById(id: number): Promise<Order | undefined> {
+    return this.orders.get(id);
+  }
+  
+  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
+    const order = this.orders.get(id);
+    if (!order) return undefined;
+    
+    const now = new Date();
+    const updatedOrder = { 
+      ...order, 
+      status, 
+      updatedAt: now 
+    };
+    this.orders.set(id, updatedOrder);
+    return updatedOrder;
+  }
+  
+  async updateOrderPaymentIntent(id: number, paymentIntentId: string): Promise<Order | undefined> {
+    const order = this.orders.get(id);
+    if (!order) return undefined;
+    
+    const now = new Date();
+    const updatedOrder = { 
+      ...order, 
+      paymentIntentId, 
+      updatedAt: now 
+    };
+    this.orders.set(id, updatedOrder);
+    return updatedOrder;
+  }
+  
+  async getAllOrders(): Promise<Order[]> {
+    return Array.from(this.orders.values());
+  }
+  
+  async getOrdersByEmail(email: string): Promise<Order[]> {
+    return Array.from(this.orders.values()).filter(
+      order => order.customerEmail === email
+    );
+  }
+  
+  // Order items methods
+  async addOrderItem(item: InsertOrderItem): Promise<OrderItem> {
+    const id = this.orderItemCurrentId++;
+    const now = new Date();
+    const orderItem: OrderItem = { ...item, id, createdAt: now };
+    this.orderItems.set(id, orderItem);
+    return orderItem;
+  }
+  
+  async getOrderItems(orderId: number): Promise<OrderItem[]> {
+    return Array.from(this.orderItems.values()).filter(
+      item => item.orderId === orderId
+    );
+  }
+  
+  async getOrderItemsWithProductDetails(orderId: number): Promise<Array<OrderItem & { productDetails: Product }>> {
+    const items = await this.getOrderItems(orderId);
+    return items.map(item => {
+      const product = this.products.get(item.productId);
+      if (!product) {
+        throw new Error(`Product with ID ${item.productId} not found`);
+      }
+      return { ...item, productDetails: product };
+    });
+  }
+  
+  private initializeData() {
+    // Initialize shipping zones with USPS rates
+    const shippingZonesData: InsertShippingZone[] = [
+      {
+        name: "Domestic - Zone 1 (Local)",
+        description: "Up to 50 miles from Portland",
+        baseRate: 7.95,
+        additionalItemRate: 2.50,
+        active: true
+      },
+      {
+        name: "Domestic - Zone 2 (Regional)",
+        description: "51-300 miles from Portland",
+        baseRate: 9.95,
+        additionalItemRate: 3.75,
+        active: true
+      },
+      {
+        name: "Domestic - Zone 3 (National)",
+        description: "301+ miles within continental US",
+        baseRate: 12.95,
+        additionalItemRate: 4.95,
+        active: true
+      },
+      {
+        name: "International - Zone 1",
+        description: "Canada and Mexico",
+        baseRate: 24.95,
+        additionalItemRate: 12.95,
+        active: true
+      },
+      {
+        name: "International - Zone 2",
+        description: "Rest of World",
+        baseRate: 34.95,
+        additionalItemRate: 17.95,
+        active: true
+      }
+    ];
+    
+    // Add shipping zones to storage
+    shippingZonesData.forEach(zone => {
+      this.createShippingZone(zone);
+    });
+    
+    // Initialize settings
+    const settingsData: InsertSettings[] = [
+      {
+        key: "home_hero_image",
+        value: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=900",
+        description: "URL for the home page hero banner image"
+      }
+    ];
+    
+    // Add settings to storage
+    settingsData.forEach(setting => {
+      this.upsertSetting(setting);
+    });
+    
+    // Sample artworks
+    const artworksData: InsertArtwork[] = [
+      {
+        title: "Mountain Light",
+        description: "A breathtaking view of mountains at sunset, capturing the warm glow and dramatic shadows.",
+        category: "magical-realism",
+        year: "2022",
+        medium: "Oil on Canvas",
+        dimensions: "30\" x 40\"",
+        price: 1200,
+        imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=750",
+        featured: true,
+        available: true,
+      },
+      {
+        title: "Emotion in Motion",
+        description: "Abstract expression of emotions through bold brushstrokes and vibrant colors.",
+        category: "sculpture",
+        year: "2023",
+        medium: "Oil on Canvas",
+        dimensions: "36\" x 48\"",
+        price: 1800,
+        imageUrl: "https://pixabay.com/get/g6565ce3796607c03b5a21c5cc2d24b417985126ecbdfad1abda582fb91aa05d1741aaacf6e93463ce4d68bb195e681a36797987b0cbb423af83bbd0752e8f661_1280.jpg",
+        featured: true,
+        available: true,
+      },
+      {
+        title: "Summer Bouquet",
+        description: "A vibrant still life featuring a summer bouquet with rich textures and subtle light.",
+        category: "still-life",
+        year: "2022",
+        medium: "Oil on Canvas",
+        dimensions: "24\" x 30\"",
+        price: 950,
+        imageUrl: "https://images.unsplash.com/photo-1580136579312-94651dfd596d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=750",
+        featured: false,
+        available: true,
+      },
+      {
+        title: "Contemplation",
+        description: "A figurative piece exploring human emotions and inner thoughts.",
+        category: "figurative",
+        year: "2023",
+        medium: "Oil on Canvas",
+        dimensions: "40\" x 50\"",
+        price: 2200,
+        imageUrl: "https://pixabay.com/get/g65d5c69dae0a3b8fd241f88a9b60ff524780a14c9820c36d8e905cd406a9f8833124e9d88a14ed197a7ed8509be4998d6e32d86f169bd31ff429f390215b9358_1280.jpg",
+        featured: false,
+        available: true,
+      },
+      {
+        title: "Beyond Horizons",
+        description: "An abstract landscape with bold colors that transcends traditional representations.",
+        category: "sculpture",
+        year: "2022",
+        medium: "Oil on Canvas",
+        dimensions: "36\" x 48\"",
+        price: 1600,
+        imageUrl: "https://pixabay.com/get/g4b68acfcd1f03ce6ac51fb8e44c461c1bca408f517a3de72eedf083c25655db48b6cd43293f025c40156633404e5a667aa4d934f30cae1f6d50206b578b37f67_1280.jpg",
+        featured: false,
+        available: true,
+      },
+      {
+        title: "Autumn Harvest",
+        description: "A rich still life featuring autumn fruits and vintage pottery.",
+        category: "still-life",
+        year: "2023",
+        medium: "Oil on Canvas",
+        dimensions: "24\" x 36\"",
+        price: 1100,
+        imageUrl: "https://pixabay.com/get/g367397e66b57b8eb2559e830a090c231513a0a01aca770b4b08679b0e8628213b82432264ddc503dec315b5b14d8a6b8926f5c9ec39189efea5aea30702f849e_1280.jpg",
+        featured: false,
+        available: true,
+      },
+      {
+        title: "Sunset Valley",
+        description: "A tranquil valley bathed in the warm glow of sunset.",
+        category: "magical-realism",
+        year: "2023",
+        medium: "Oil on Canvas",
+        dimensions: "36\" x 48\"",
+        price: 1500,
+        imageUrl: "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=750",
+        featured: true,
+        available: true,
+      },
+      {
+        title: "Ocean Memories",
+        description: "Abstract seascape capturing the essence and emotion of ocean memories.",
+        category: "sculpture",
+        year: "2023",
+        medium: "Oil on Canvas",
+        dimensions: "30\" x 40\"",
+        price: 1700,
+        imageUrl: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=750",
+        featured: true,
+        available: true,
+      },
+      {
+        title: "Spring Bloom",
+        description: "A colorful celebration of spring flowers in full bloom.",
+        category: "still-life",
+        year: "2023",
+        medium: "Oil on Canvas",
+        dimensions: "24\" x 30\"",
+        price: 1200,
+        imageUrl: "https://images.unsplash.com/photo-1578301978018-3005759f48f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=750",
+        featured: true,
+        available: true,
+      }
+    ];
+
+    // Add artworks to storage
+    artworksData.forEach(artwork => {
+      this.createArtwork(artwork);
+    });
+
+    // Sample products
+    const productsData: InsertProduct[] = [
+      {
+        title: "Autumn Dreams",
+        description: "Original Oil on Canvas",
+        price: 1450,
+        imageUrl: "https://pixabay.com/get/g5116f4bfc12f57f0200c8822551dd29bacbef536bc4d4f0fd90d79d645511596a1a86a7530dbc887dd081e178b228fb7e852b8f304f78d2a9b82fd3325cf2937_1280.jpg",
+        type: "originals",
+        available: true,
+        stock: 1,
+        artworkId: 1,
+      },
+      {
+        title: "Mountain Serenity",
+        description: "Original Oil on Canvas",
+        price: 1850,
+        imageUrl: "https://pixabay.com/get/g98c9f88343ce66174971eb64ddcceb4b901a38f5e28b0afb868aa0c3fc544ab67220fb0b911f1486779fe7ede5607f0a377fa1448337ca0ed618af50f6cc21e8_1280.jpg",
+        type: "originals",
+        available: true,
+        stock: 1,
+        artworkId: 2,
+      },
+      {
+        title: "Vivid Horizons",
+        description: "Limited Edition Print (25)",
+        price: 195,
+        imageUrl: "https://pixabay.com/get/g6b78d75220203e9eb38110298ff2bb88b5156a5fccf7707082922413ed37ddaea8888dcc65357dee42cd5774980a7bc022b40ea12c957bb584d5d962795827a9_1280.jpg",
+        type: "prints",
+        available: true,
+        stock: 25,
+        artworkId: 5,
+      },
+      {
+        title: "Ocean Mist",
+        description: "Limited Edition Print (50)",
+        price: 150,
+        imageUrl: "https://images.unsplash.com/photo-1578301979148-5205b4a05be1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "prints",
+        available: true,
+        stock: 50,
+        artworkId: 8,
+      },
+      {
+        title: "Art Journal",
+        description: "Sunrise Collection",
+        price: 35,
+        imageUrl: "https://images.unsplash.com/photo-1583845112203-29329902332e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "merchandise",
+        available: true,
+        stock: 50,
+        artworkId: null,
+      },
+      {
+        title: "Art Postcards Set",
+        description: "Gallery Collection (10 Cards)",
+        price: 24,
+        imageUrl: "https://images.unsplash.com/photo-1598115796663-44cc6173694b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "merchandise",
+        available: true,
+        stock: 100,
+        artworkId: null,
+      },
+      {
+        title: "Silk Scarf",
+        description: "Abstract Bloom Design",
+        price: 85,
+        imageUrl: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "merchandise",
+        available: true,
+        stock: 25,
+        artworkId: null,
+      },
+      {
+        title: "Garden Dreams",
+        description: "Original Oil on Canvas",
+        price: 1250,
+        imageUrl: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "originals",
+        available: true,
+        stock: 1,
+        artworkId: 8,
+      }
+    ];
+
+    // Add products to storage
+    productsData.forEach(product => {
+      this.createProduct(product);
+    });
+  }
+}
+
+export const storage = new MemStorage();

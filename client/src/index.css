@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+      --background: 0 0% 100%;
+--foreground: 20 14.3% 4.1%;
+--muted: 60 4.8% 95.9%;
+--muted-foreground: 25 5.3% 44.7%;
+--popover: 0 0% 100%;
+--popover-foreground: 20 14.3% 4.1%;
+--card: 0 0% 100%;
+--card-foreground: 20 14.3% 4.1%;
+--border: 20 5.9% 90%;
+--input: 20 5.9% 90%;
+--primary: 207 90% 54%;
+--primary-foreground: 211 100% 99%;
+--secondary: 60 4.8% 95.9%;
+--secondary-foreground: 24 9.8% 10%;
+--accent: 60 4.8% 95.9%;
+--accent-foreground: 24 9.8% 10%;
+--destructive: 0 84.2% 60.2%;
+--destructive-foreground: 60 9.1% 97.8%;
+--ring: 20 14.3% 4.1%;
+--radius: 0.5rem;
+  }
+  .dark {
+      --background: 240 10% 3.9%;
+--foreground: 0 0% 98%;
+--muted: 240 3.7% 15.9%;
+--muted-foreground: 240 5% 64.9%;
+--popover: 240 10% 3.9%;
+--popover-foreground: 0 0% 98%;
+--card: 240 10% 3.9%;
+--card-foreground: 0 0% 98%;
+--border: 240 3.7% 15.9%;
+--input: 240 3.7% 15.9%;
+--primary: 207 90% 54%;
+--primary-foreground: 211 100% 99%;
+--secondary: 240 3.7% 15.9%;
+--secondary-foreground: 0 0% 98%;
+--accent: 240 3.7% 15.9%;
+--accent-foreground: 0 0% 98%;
+--destructive: 0 62.8% 30.6%;
+--destructive-foreground: 0 0% 98%;
+--ring: 240 4.9% 83.9%;
+--radius: 0.5rem;
+  }
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Elegant shimmer animation for loading skeletons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Beautiful fade-in-up animation for product cards */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* Dynamic Color Palette Theming */
+.artwork-themed {
+  transition: all 0.8s ease-in-out;
+}
+
+/* Apply artwork colors to specific elements */
+.artwork-themed .artwork-primary-bg {
+  background-color: var(--artwork-primary) !important;
+}
+
+.artwork-themed .artwork-secondary-bg {
+  background-color: var(--artwork-secondary) !important;
+}
+
+.artwork-themed .artwork-accent-bg {
+  background-color: var(--artwork-accent) !important;
+}
+
+.artwork-themed .artwork-primary-text {
+  color: var(--artwork-primary) !important;
+}
+
+.artwork-themed .artwork-secondary-text {
+  color: var(--artwork-secondary) !important;
+}
+
+.artwork-themed .artwork-accent-text {
+  color: var(--artwork-accent) !important;
+}
+
+.artwork-themed .artwork-primary-border {
+  border-color: var(--artwork-primary) !important;
+}
+
+/* Product detail page theming */
+.artwork-themed .product-detail-section {
+  background: linear-gradient(135deg, var(--artwork-background) 0%, rgba(255,255,255,0.9) 100%);
+}
+
+.artwork-themed .product-price {
+  color: var(--artwork-primary);
+  font-weight: 600;
+}
+
+.artwork-themed .product-title {
+  color: var(--artwork-text);
+}
+
+.artwork-themed .artwork-button {
+  background-color: var(--artwork-primary);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.artwork-themed .artwork-button:hover {
+  background-color: var(--artwork-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.artwork-themed .artwork-button-outline {
+  border: 2px solid var(--artwork-primary);
+  color: var(--artwork-primary);
+  background: transparent;
+}
+
+.artwork-themed .artwork-button-outline:hover {
+  background-color: var(--artwork-primary);
+  color: white;
+}
+
+/* Gallery and shop theming */
+.artwork-themed .artwork-card {
+  border: 1px solid var(--artwork-accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.artwork-themed .artwork-card:hover {
+  border-color: var(--artwork-primary);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.artwork-themed .section-divider {
+  background: linear-gradient(90deg, transparent, var(--artwork-accent), transparent);
+  height: 1px;
+}

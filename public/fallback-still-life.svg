@@ -1,0 +1,10 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#f1f5f9"/>
+  <rect x="300" y="300" width="200" height="150" rx="5" fill="#a0aec0" opacity="0.7"/>
+  <ellipse cx="370" cy="270" rx="40" ry="50" fill="#b8860b" opacity="0.6"/>
+  <ellipse cx="440" cy="260" rx="35" ry="45" fill="#b8860b" opacity="0.5"/>
+  <ellipse cx="400" cy="250" rx="30" ry="40" fill="#b8860b" opacity="0.7"/>
+  <rect x="320" y="300" width="160" height="1" fill="#4a5568"/>
+  <text x="400" y="500" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#2d3748">Still Life Artwork</text>
+  <text x="400" y="530" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#4a5568">Image temporarily unavailable</text>
+</svg>
