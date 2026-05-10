@@ -106,7 +106,7 @@ export default function Home() {
                   <Skeleton className="h-16 w-full" />
                 </div>
               ) : (
-                <h1 className="text-secondary text-4xl md:text-5xl lg:text-6xl font-serif leading-tight mb-6">
+                <h1 className="text-secondary text-3xl md:text-4xl lg:text-4xl font-serif leading-tight mb-6">
                   {heroHeading?.value || "Capturing emotions through color and texture"}
                 </h1>
               )}
@@ -115,7 +115,7 @@ export default function Home() {
                   <Skeleton className="h-8 w-full" />
                 </div>
               ) : (
-                <p className="text-secondary text-lg md:text-xl mb-8 font-light">
+                <p className="text-secondary text-sm md:text-base mb-8 font-light leading-relaxed">
                   {heroSubheading?.value || "Contemporary oil paintings that explore the boundaries between reality and abstraction"}
                 </p>
               )}
