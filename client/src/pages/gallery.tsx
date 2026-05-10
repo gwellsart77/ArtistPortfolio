@@ -139,43 +139,37 @@ export default function Gallery() {
       />
       {renderArtworkStructuredData()}
 
-      {/* Minimal page header */}
-      <div className="container mx-auto px-6 lg:px-12 pt-8 pb-4">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-serif text-neutral-800 tracking-wide">Gallery</h1>
-            <p className="text-sm text-neutral-500 mt-1">
-              {galleryDescription?.value || "Original works — oil on canvas, acrylic, and mixed media"}
-            </p>
-          </div>
+      {/* Centered page header */}
+      <div className="container mx-auto px-6 lg:px-12 pt-12 pb-8 text-center">
+        <h1 className="text-4xl font-serif text-neutral-800 tracking-wide mb-4">Selected Works</h1>
+        <div className="w-24 h-px bg-[#b8860b] mx-auto mb-6"></div>
+        <p className="text-sm text-neutral-500 max-w-xl mx-auto mb-8 leading-relaxed">
+          {galleryDescription?.value || "Original works — oil on canvas, acrylic, and mixed media"}
+        </p>
 
-          {/* Category filter pills */}
-          <div className="flex flex-wrap gap-2 md:justify-end">
-            {galleryCategories.slice(0, displayCount).map((category) => {
-              const displayName = category.split('-')
-                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
-              const isActive = activeCategory === category;
+        {/* Category filter tabs */}
+        <div className="flex flex-wrap justify-center gap-6">
+          {galleryCategories.slice(0, displayCount).map((category) => {
+            const displayName = category.split('-')
+              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            const isActive = activeCategory === category;
 
-              return (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`text-xs tracking-widest uppercase transition-colors duration-200 whitespace-nowrap ${
-                    isActive
-                      ? "text-[#b8860b] font-medium"
-                      : "text-neutral-400 hover:text-neutral-700"
-                  }`}
-                >
-                  {displayName}
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
+                  isActive
+                    ? "text-neutral-800 border-[#b8860b] font-medium"
+                    : "text-neutral-400 border-transparent hover:text-neutral-600"
+                }`}
+              >
+                {displayName}
+              </button>
+            );
+          })}
         </div>
-
-        {/* Thin divider */}
-        <div className="w-full h-px bg-neutral-200 mt-4"></div>
       </div>
 
       {/* Gallery Grid */}
