@@ -161,10 +161,10 @@ export default function Gallery() {
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`px-3 py-1 text-xs tracking-wide transition-all duration-200 rounded-full border ${
+                  className={`text-xs tracking-widest uppercase transition-colors duration-200 whitespace-nowrap ${
                     isActive
-                      ? "border-[#b8860b] text-[#b8860b] bg-[#b8860b]/8 font-medium"
-                      : "border-neutral-300 text-neutral-500 hover:border-neutral-500 hover:text-neutral-700 bg-transparent"
+                      ? "text-[#b8860b] font-medium"
+                      : "text-neutral-400 hover:text-neutral-700"
                   }`}
                 >
                   {displayName}
