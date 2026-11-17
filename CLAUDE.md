@@ -9,6 +9,44 @@
 **Routing:** Wouter (lightweight client-side router)  
 **State:** TanStack React Query (server state) + Zustand (cart)
 
+**Start here:** `docs/project/START_HERE.md` (knowledge map) → plan `docs/project/PROJECT_ROADMAP.md` →
+why `docs/project/DECISIONS.md` → newest brief in `docs/project/HANDOFFS/`. A doc that disagrees with the live site loses.
+
+### Standing answers (Gabe, do not re-ask)
+- 2026-11-17: Claude does all SEO research, code, testing, deploying and publishing without asking; Gabe steps in only for logins/input.
+- 2026-11-17: Use Gabe's own artist text for the site description (`shared/seo.ts`), condensed if needed, his words.
+- 2026-11-16: Never drop Replit-only work (podcast, flagship) and don't publish the podcast until he asks (see Deployment).
+
+### Scope guard
+One test for anything found mid-chat: "Can the chat's goal be finished without this?" Yes → park it in
+`docs/project/PROJECT_ROADMAP.md` → 🅿️ Backlog and tell Gabe in one line. No → fix it now (root cause first).
+
+### Known failure patterns (dated)
+- 2026-11-17: Admin settings save is `PUT /api/admin/settings` (there is no POST). Unknown `/api/*` now returns JSON 404.
+- 2026-11-17: GA was secretly fed by the `VITE_GA_MEASUREMENT_ID` Replit secret; removing the env-based init stopped tracking for ~20 min. Server now falls back to that secret.
+- 2026-11-17: Claude may not type or paste secret keys into fields: hand key steps to Gabe (illustrated guide).
+- 2026-11-17: A brand-new Google service account is rejected by GA "Add users" for ~1 minute ("doesn't match a Google Account"); retry.
+- 2026-11-17: Search Console sitemap first showed 5 discovered pages (old cache); live sitemap has 47. Re-check later, don't "fix".
+- 2026-11-17: Built-in browser IS signed in to Replit and the Shell screenshot works there; Google (GA, Cloud, Search Console) is signed in only in Chrome.
+
+### Skills used in this project
+| Situation | Skill | How / gotcha |
+|---|---|---|
+| Deploy or drive the Replit Shell | `replit-shell-handoff` | Follow the Deployment recipe below; screenshot the shell before typing |
+| Add/edit artwork, products, releases | `website-manager` | |
+| Gabe must do a setup step (keys, accounts) | `illustrated-setup-guide` | Publish as artifact, give him the link |
+| Any bug | `superpowers:systematic-debugging` | Root cause before fix |
+| Before saying "done" | `superpowers:verification-before-completion` | curl the live URL / screenshot |
+| Visual/UI changes | `frontend-design`, `design:accessibility-review` | Keep Design System below |
+| Choices only Gabe can make | `decision-questionnaire` | |
+| Numbers and claims | `anti-hallucination` | |
+| Model choice | `advisor-router-unified` | |
+| Plan / next steps | `project-roadmap`, `project-analysis` | |
+| Phase end / chat close | `project-knowledge-update` | |
+| Browser work | `built-in-browser` (default), `chrome-browser` (Google sites) | |
+| Artwork descriptions in Gabe's voice | `artist-voice`, `post-writer` | |
+| Pricing originals | `painting-pricer` | |
+
 ---
 
 ## Deployment Pipeline — READ THIS FIRST
