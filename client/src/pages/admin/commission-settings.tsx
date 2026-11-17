@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 // Removed unused apiRequest import for type safety
 import { cacheInvalidation } from "@/lib/cache-invalidation";
-import { Mail, Settings, Save, ArrowLeft } from "lucide-react";
+import { Mail, Settings, Save, ArrowLeft, Eye, Calculator, Users } from "lucide-react";
 import { navigateBackToDashboard } from "@/lib/navigation-utils";
 
 // TypeScript interface for commission settings API response

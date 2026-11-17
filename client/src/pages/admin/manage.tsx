@@ -215,7 +215,7 @@ export default function ManageGallery() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin text-[#b8860b]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#8b6b3e]" />
           <span className="text-lg">Loading gallery...</span>
         </div>
       </div>
@@ -262,7 +262,7 @@ export default function ManageGallery() {
               </Button>
               <Button
                 variant="default"
-                className="bg-[#b8860b] hover:bg-opacity-90"
+                className="bg-[#1b1a18] hover:bg-black"
                 onClick={saveOrder}
                 disabled={updateOrderMutation.isPending}
               >
@@ -286,14 +286,14 @@ export default function ManageGallery() {
               </Button>
               <Button
                 variant="default"
-                className="bg-[#b8860b] hover:bg-opacity-90"
+                className="bg-[#1b1a18] hover:bg-black"
                 onClick={() => setReorderMode(true)}
               >
                 Reorder Gallery
               </Button>
               <Button
                 variant="ghost"
-                className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+                className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
                 onClick={() => navigate("/")}
               >
                 <Home className="h-4 w-4 mr-2" />
@@ -356,7 +356,7 @@ export default function ManageGallery() {
                       
                       {artwork.featured && (
                         <div className="absolute top-3 left-3">
-                          <Badge className="bg-[#b8860b]">Featured</Badge>
+                          <Badge className="bg-[#1b1a18]">Featured</Badge>
                         </div>
                       )}
 

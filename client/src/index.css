@@ -182,3 +182,17 @@
   background: linear-gradient(90deg, transparent, var(--artwork-accent), transparent);
   height: 1px;
 }
+
+/* Admin: older admin pages draw their own full-screen grey frame. Inside the shared
+   admin layout that frame is redundant, so flatten it. */
+.admin-main > div > .min-h-screen,
+.admin-main > div > div > .min-h-screen {
+  min-height: 0;
+  background: transparent;
+  padding: 0;
+}
+.admin-main > div > .min-h-screen > .container,
+.admin-main > div > .min-h-screen > .max-w-7xl {
+  padding-left: 0;
+  padding-right: 0;
+}

@@ -378,7 +378,7 @@ export default function ArtworkUpload() {
             variant="outline"
             size="sm"
             onClick={() => navigate("/admin/manage")}
-            className="text-[#b8860b] border-[#b8860b] hover:bg-[#b8860b] hover:text-white"
+            className="text-[#8b6b3e] border-[#8b6b3e] hover:bg-black hover:text-white"
           >
             Manage Gallery
           </Button>
@@ -394,7 +394,7 @@ export default function ArtworkUpload() {
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center">
-                      <Upload className="h-5 w-5 mr-2 text-[#b8860b]" />
+                      <Upload className="h-5 w-5 mr-2 text-[#8b6b3e]" />
                       Image Upload
                     </CardTitle>
                   </CardHeader>
@@ -529,7 +529,7 @@ export default function ArtworkUpload() {
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center">
-                      <Calculator className="h-5 w-5 mr-2 text-[#b8860b]" />
+                      <Calculator className="h-5 w-5 mr-2 text-[#8b6b3e]" />
                       Price Calculator
                     </CardTitle>
                   </CardHeader>
@@ -584,7 +584,7 @@ export default function ArtworkUpload() {
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center">
-                      <FileText className="h-5 w-5 mr-2 text-[#b8860b]" />
+                      <FileText className="h-5 w-5 mr-2 text-[#8b6b3e]" />
                       Artwork Details
                     </CardTitle>
                   </CardHeader>
@@ -750,7 +750,7 @@ export default function ArtworkUpload() {
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center">
-                      <Search className="h-5 w-5 mr-2 text-[#b8860b]" />
+                      <Search className="h-5 w-5 mr-2 text-[#8b6b3e]" />
                       SEO Settings
                     </CardTitle>
                   </CardHeader>
@@ -811,7 +811,7 @@ export default function ArtworkUpload() {
                   <CardContent className="pt-6">
                     <Button 
                       type="submit" 
-                      className="w-full bg-[#b8860b] hover:bg-[#9a7209] text-white"
+                      className="w-full bg-[#1b1a18] hover:bg-black text-white"
                       disabled={uploadMutation.isPending}
                     >
                       {uploadMutation.isPending ? (

@@ -1,307 +1,224 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useSearch } from "wouter";
 import { adminLogout } from "@/lib/admin-auth";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, Image, ShoppingCart, FileText, Globe, 
-  Settings, Palette, Shield, KeyRound, HelpCircle, Package,
-  Bell, Mail, BarChart, Calculator, LogOut, Eye,
-  ChevronDown, ChevronRight, Upload, Edit,
-  Plus, Archive, Truck, Printer, Zap, MessageSquare,
-  Users, CreditCard, Plane, BarChart3, TrendingUp,
-  Receipt, Home, User, Phone, Brush, Monitor,
-  Server, Wrench, Send, Headphones, CheckCircle, XCircle, Layout
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard, Image, Upload, Package, Plus, FileText, Settings,
+  Inbox, MessageSquare, SlidersHorizontal, Mail, Home, User, Phone,
+  PanelBottom, BarChart3, CreditCard, Send, KeyRound, Printer, Truck,
+  Shield, HelpCircle, ExternalLink, LogOut, Menu, X,
 } from "lucide-react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  title: string;
+  /** Page title shown above the content. Leave empty for pages that draw their own header. */
+  title?: string;
   description?: string;
 }
 
-interface MenuItem {
-  title: string;
-  icon?: any;
-  path?: string;
-  children?: MenuItem[];
-  isExpanded?: boolean;
-  isGroupLabel?: boolean;
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
+/**
+ * One menu for the whole admin. Every link here goes to a page that exists.
+ * (The old menu had links to pages that were never built, and three different
+ * admin layouts depending on the page.)
+ */
+export const ADMIN_NAV: NavGroup[] = [
+  { items: [{ label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard }] },
+  {
+    label: "Artwork",
+    items: [
+      { label: "Gallery", href: "/admin/manage", icon: Image },
+      { label: "Upload artwork", href: "/admin/upload", icon: Upload },
+    ],
+  },
+  {
+    label: "Shop",
+    items: [
+      { label: "Products", href: "/admin/manage-products", icon: Package },
+      { label: "Add product", href: "/admin/add-product", icon: Plus },
+      { label: "Orders", href: "/admin/orders", icon: FileText },
+      { label: "Shop settings", href: "/admin/shop-settings", icon: Settings },
+    ],
+  },
+  {
+    label: "Messages",
+    items: [
+      { label: "Inbox", href: "/admin/messages", icon: Inbox },
+      { label: "Commission requests", href: "/admin/commission-requests", icon: MessageSquare },
+      { label: "Commission settings", href: "/admin/commission-settings", icon: SlidersHorizontal },
+      { label: "Email templates", href: "/admin/email-templates", icon: Mail },
+    ],
+  },
+  {
+    label: "Website",
+    items: [
+      { label: "Homepage", href: "/admin/settings/homepage", icon: Home },
+      { label: "Gallery page", href: "/admin/settings/gallery", icon: Image },
+      { label: "About page", href: "/admin/settings/about", icon: User },
+      { label: "Contact page", href: "/admin/settings/contact", icon: Phone },
+      { label: "Footer", href: "/admin/settings/footer", icon: PanelBottom },
+      { label: "Visitor analytics", href: "/admin/analytics-settings", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Connections",
+    items: [
+      { label: "Payments (Stripe)", href: "/admin/dashboard?tab=stripe-config", icon: CreditCard },
+      { label: "Email sending", href: "/admin/dashboard?tab=email-config", icon: Send },
+      { label: "API keys", href: "/admin/dashboard?tab=api-configuration", icon: KeyRound },
+      { label: "Printful", href: "/admin/printful-settings", icon: Printer },
+      { label: "Drop shipping", href: "/admin/dropshipping", icon: Truck },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { label: "Password & 2-step", href: "/admin/account-security", icon: Shield },
+      { label: "Help", href: "/admin/help-guides/getting-started", icon: HelpCircle },
+    ],
+  },
+];
+
+function isItemActive(href: string, path: string, search: string): boolean {
+  const [hrefPath = "", hrefQuery = ""] = href.split("?");
+  const hrefTab = new URLSearchParams(hrefQuery).get("tab");
+  const currentTab = new URLSearchParams(search).get("tab");
+  if (hrefPath === "/admin/dashboard") {
+    if (path !== "/admin/dashboard" && path !== "/admin") return false;
+    return (hrefTab || null) === (currentTab || null);
+  }
+  if (path === hrefPath) return true;
+  // Sub-pages: /admin/edit/12 belongs to Gallery, /admin/edit-product/3 to Products, /admin/orders/5 to Orders
+  if (hrefPath === "/admin/manage" && path.startsWith("/admin/edit/")) return true;
+  if (hrefPath === "/admin/manage-products" && path.startsWith("/admin/edit-product/")) return true;
+  if (hrefPath === "/admin/orders" && path.startsWith("/admin/orders/")) return true;
+  if (hrefPath.startsWith("/admin/help-guides") && path.startsWith("/admin/help-guides")) return true;
+  return false;
 }
 
 export default function AdminLayout({ children, title, description }: AdminLayoutProps) {
   const [location, navigate] = useLocation();
-  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+  const search = useSearch();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const menuItems: MenuItem[] = [
-    { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-
-    // ─── CONTENT ───────────────────────────────────────────────
-    { title: "CONTENT", isGroupLabel: true },
-    {
-      title: "Artwork Gallery",
-      icon: Image,
-      children: [
-        { title: "Upload New Artwork", icon: Upload, path: "/admin/upload" },
-        { title: "Manage Gallery", icon: Edit, path: "/admin/manage" },
-      ]
-    },
-    {
-      title: "Shop",
-      icon: ShoppingCart,
-      children: [
-        { title: "Add New Product", icon: Plus, path: "/admin/add-product" },
-        { title: "Manage Products", icon: Archive, path: "/admin/manage-products" },
-        { title: "Drop Shipping", icon: Truck, path: "/admin/dropshipping" },
-        { title: "Printful Settings", icon: Zap, path: "/admin/printful-settings" },
-        { title: "Shop Settings", icon: Settings, path: "/admin/shop-settings" },
-      ]
-    },
-    { title: "Orders", icon: FileText, path: "/admin/orders" },
-    {
-      title: "Commission Requests",
-      icon: MessageSquare,
-      children: [
-        { title: "All Requests", icon: FileText, path: "/admin/commission-requests" },
-        { title: "Pending", icon: Bell, path: "/admin/commission-requests?status=pending" },
-        { title: "Accepted", icon: CheckCircle, path: "/admin/commission-requests?status=accepted" },
-        { title: "Completed", icon: CheckCircle, path: "/admin/commission-requests?status=completed" },
-        { title: "Declined", icon: XCircle, path: "/admin/commission-requests?status=declined" },
-      ]
-    },
-    { title: "Commission Settings", icon: Settings, path: "/admin/commission-settings" },
-    { title: "Email Templates", icon: Mail, path: "/admin/email-templates" },
-
-    // ─── WEBSITE ───────────────────────────────────────────────
-    { title: "WEBSITE", isGroupLabel: true },
-    {
-      title: "Page Settings",
-      icon: Globe,
-      children: [
-        { title: "Homepage", icon: Home, path: "/admin/settings/homepage" },
-        { title: "Gallery", icon: Image, path: "/admin/settings/gallery" },
-        { title: "Artist Bio", icon: User, path: "/admin/settings/about" },
-        { title: "Contact", icon: Phone, path: "/admin/settings/contact" },
-        { title: "Footer", icon: Layout, path: "/admin/settings/footer" },
-        { title: "Shop", icon: ShoppingCart, path: "/admin/shop-settings" },
-      ]
-    },
-    {
-      title: "Website Colors",
-      icon: Palette,
-      children: [
-        { title: "Color Schemes", icon: Palette, path: "/admin/settings?tab=colors" },
-        { title: "Live Preview", icon: Monitor, path: "/admin/color-preview" },
-        { title: "Reset Options", icon: Wrench, path: "/admin/color-reset" },
-      ]
-    },
-    { title: "Analytics", icon: BarChart, path: "/admin/analytics-settings" },
-
-    // ─── ACCOUNT & SECURITY ────────────────────────────────────
-    { title: "ACCOUNT & SECURITY", isGroupLabel: true },
-    { title: "MFA / 2FA", icon: Shield, path: "/admin/account-security" },
-    {
-      title: "API Configuration",
-      icon: KeyRound,
-      children: [
-        {
-          title: "Print Services",
-          icon: Printer,
-          children: [
-            { title: "Products", icon: Package, path: "/admin/api/print-products" },
-            { title: "Settings", icon: Settings, path: "/admin/api/print-settings" },
-          ]
-        },
-        {
-          title: "Payment Processing",
-          icon: CreditCard,
-          children: [
-            { title: "Stripe Configuration", icon: CreditCard, path: "/admin/api/stripe" },
-            { title: "Setup Instructions", icon: HelpCircle, path: "/admin/api/payment-setup" },
-          ]
-        },
-        {
-          title: "Email Services",
-          icon: Mail,
-          children: [
-            { title: "SMTP Configuration", icon: Send, path: "/admin/api/smtp" },
-            { title: "SMTP Providers", icon: Server, path: "/admin/api/smtp-providers" },
-          ]
-        },
-        {
-          title: "Shipping Services",
-          icon: Plane,
-          children: [
-            { title: "UPS", icon: Plane, path: "/admin/api/ups" },
-            { title: "FedEx", icon: Plane, path: "/admin/api/fedex" },
-          ]
-        },
-        {
-          title: "Analytics Services",
-          icon: BarChart,
-          children: [
-            { title: "Google Analytics", icon: BarChart, path: "/admin/api/google-analytics" },
-          ]
-        },
-      ]
-    },
-
-    // ─── SUPPORT ───────────────────────────────────────────────
-    { title: "SUPPORT", isGroupLabel: true },
-    { title: "Help & Support", icon: Headphones, path: "/admin/help-guides/getting-started" },
-  ];
-
-  const toggleMenu = (menuTitle: string) => {
-    const newExpanded = new Set(expandedMenus);
-    if (newExpanded.has(menuTitle)) {
-      newExpanded.delete(menuTitle);
-    } else {
-      newExpanded.add(menuTitle);
-    }
-    setExpandedMenus(newExpanded);
-  };
-
-  const isMenuActive = (item: MenuItem): boolean => {
-    if (item.path) {
-      return location === item.path || 
-        (item.path.includes("?") && location.startsWith(item.path.split("?")[0] || ""));
-    }
-    if (item.children) {
-      return item.children.some(child => isMenuActive(child));
-    }
-    return false;
-  };
-
-  const renderMenuItem = (item: MenuItem, level: number = 0): React.ReactNode => {
-    if (item.isGroupLabel) {
-      return (
-        <p key={item.title} className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-5 mb-1 px-3 first:mt-0">
-          {item.title}
-        </p>
-      );
-    }
-
-    const hasChildren = item.children && item.children.length > 0;
-    const isExpanded = expandedMenus.has(item.title);
-    const isActive = isMenuActive(item);
-    const paddingLeft = level > 0 ? `${level * 16}px` : '0px';
-
-    if (hasChildren) {
-      return (
-        <div key={item.title}>
-          <Button
-            variant="ghost"
-            className={`w-full justify-start text-gray-700 hover:bg-gray-100 ${isActive ? 'bg-blue-50 text-blue-600' : ''}`}
-            style={{ paddingLeft }}
-            onClick={() => toggleMenu(item.title)}
-          >
-            {item.icon && <item.icon className="h-4 w-4 mr-2" />}
-            <span className="flex-1 text-left">{item.title}</span>
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-          {isExpanded && (
-            <div className="mt-1 space-y-1">
-              {item.children?.map((child, index) => (
-                <div key={`${child.title}-${index}`}>
-                  {renderMenuItem(child, level + 1)}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <div key={item.title}>
-        <Button
-          variant={isActive ? "default" : "ghost"}
-          className={`w-full justify-start ${
-            isActive 
-              ? "bg-blue-600 text-white" 
-              : "text-gray-700 hover:bg-gray-100"
-          }`}
-          style={{ paddingLeft }}
-          onClick={() => item.path && navigate(item.path)}
-        >
-          {item.icon && <item.icon className="h-4 w-4 mr-2" />}
-          {item.title}
-        </Button>
-      </div>
-    );
-  };
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location, search]);
 
   const handleLogout = async () => {
     await adminLogout();
     navigate("/admin/login");
   };
 
-  const handleViewSite = () => {
-    window.open("/", "_blank");
-  };
+  const nav = (
+    <nav className="px-3 py-4 space-y-5" aria-label="Admin">
+      {ADMIN_NAV.map((group, gi) => (
+        <div key={gi}>
+          {group.label && (
+            <p className="px-3 mb-1.5 text-[11px] uppercase tracking-[0.14em] text-[#6e6a63]">{group.label}</p>
+          )}
+          <ul className="space-y-0.5">
+            {group.items.map((item) => {
+              const active = isItemActive(item.href, location, search);
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
+                      active
+                        ? "bg-[#1b1a18] text-white"
+                        : "text-[#3d3a35] hover:bg-[#efede8] hover:text-[#1b1a18]"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <button
-            className="text-left"
-            onClick={() => navigate("/admin/dashboard")}
-            aria-label="Go to dashboard"
-          >
-            <h1 className="text-2xl font-bold text-blue-600 hover:text-blue-500 transition-colors">Artist Admin</h1>
-          </button>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleViewSite}
-              className="flex items-center"
+    <div className="min-h-screen bg-[#f7f6f3] text-[#1b1a18]">
+      {/* Top bar */}
+      <header className="sticky top-0 z-40 h-14 bg-white/95 backdrop-blur border-b border-[#e3e0da]">
+        <div className="h-full px-4 lg:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-[#efede8]"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
             >
-              <Eye className="h-4 w-4 mr-2" />
-              View Site
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+            <Link href="/admin/dashboard" className="flex items-baseline gap-2">
+              <span className="font-serif text-2xl leading-none">Gabe Wells</span>
+              <span className="text-[11px] uppercase tracking-[0.14em] text-[#6e6a63]">Admin</span>
+            </Link>
+          </div>
+          <div className="flex items-center gap-1">
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-[#3d3a35] hover:bg-[#efede8]"
+            >
+              <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+              <span className="hidden sm:inline">View site</span>
+            </a>
+            <button
+              type="button"
               onClick={handleLogout}
-              className="flex items-center"
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-[#3d3a35] hover:bg-[#efede8]"
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+              <LogOut className="h-4 w-4" strokeWidth={1.75} />
+              <span className="hidden sm:inline">Log out</span>
+            </button>
           </div>
         </div>
       </header>
 
       <div className="flex">
-        {/* Left Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)]">
-          <nav className="p-4 space-y-1">
-            {menuItems.map((item, index) => (
-              <div key={`menu-${item.title}-${index}`}>
-                {renderMenuItem(item)}
-              </div>
-            ))}
-          </nav>
+        {/* Sidebar (desktop) */}
+        <aside className="hidden lg:block w-60 shrink-0 border-r border-[#e3e0da] bg-white sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
+          {nav}
         </aside>
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-8">
-          <div className="max-w-6xl">
-            {/* Page Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-              {description && (
-                <p className="text-gray-600 mt-2">{description}</p>
-              )}
-            </div>
+        {/* Sidebar (phone/tablet drawer) */}
+        {menuOpen && (
+          <div className="lg:hidden fixed inset-0 top-14 z-30">
+            <button className="absolute inset-0 bg-black/30" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
+            <aside className="relative w-72 max-w-[85vw] h-full bg-white border-r border-[#e3e0da] overflow-y-auto">{nav}</aside>
+          </div>
+        )}
 
-            {/* Page Content */}
+        {/* Content */}
+        <main id="main-content" className="admin-main flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-6xl mx-auto">
+            {title && (
+              <div className="mb-6">
+                <h1 className="font-serif text-3xl md:text-4xl">{title}</h1>
+                {description && <p className="text-sm text-[#6e6a63] mt-1">{description}</p>}
+              </div>
+            )}
             {children}
           </div>
         </main>

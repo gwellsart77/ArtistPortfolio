@@ -225,7 +225,7 @@ export default function ManageProducts() {
           </div>
           <Button 
             variant="ghost" 
-            className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+            className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
             onClick={() => navigate("/")}
           >
             <Home className="h-4 w-4 mr-2" />
@@ -264,7 +264,7 @@ export default function ManageProducts() {
                 <div className="flex space-x-2">
                   <Button 
                     onClick={() => navigate("/admin/add-product")}
-                    className="bg-[#b8860b] hover:bg-opacity-90"
+                    className="bg-[#1b1a18] hover:bg-black"
                   >
                     Add New Product
                   </Button>

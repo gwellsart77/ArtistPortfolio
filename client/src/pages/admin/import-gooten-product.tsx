@@ -199,7 +199,7 @@ export default function ImportGootenProduct() {
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+              className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
               onClick={() => navigate("/admin/manage-products")}
             >
               <Package className="h-4 w-4 mr-2" />
@@ -207,7 +207,7 @@ export default function ImportGootenProduct() {
             </Button>
             <Button 
               variant="ghost" 
-              className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+              className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
               onClick={() => navigate("/")}
             >
               <Home className="h-4 w-4 mr-2" />

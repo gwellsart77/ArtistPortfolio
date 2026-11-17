@@ -195,7 +195,7 @@ export default function MfaForm({ savedCredentials, onBack }: MfaFormProps) {
               </Button>
               <Button 
                 type="submit" 
-                className="bg-[#b8860b] hover:bg-opacity-90"
+                className="bg-[#1b1a18] hover:bg-black"
                 disabled={mfaVerifyMutation.isPending}
               >
                 {mfaVerifyMutation.isPending ? "Verifying..." : "Verify"}

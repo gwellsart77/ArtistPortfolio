@@ -150,7 +150,7 @@ export default function LoginForm({ onRequireMfa }: LoginFormProps) {
             
             <Button 
               type="submit" 
-              className="w-full bg-[#b8860b] hover:bg-opacity-90"
+              className="w-full bg-[#1b1a18] hover:bg-black"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? "Logging in..." : "Login"}
@@ -159,7 +159,7 @@ export default function LoginForm({ onRequireMfa }: LoginFormProps) {
             <div className="text-sm text-neutral-500 mt-4 text-center">
               <Button 
                 variant="link" 
-                className="p-0 h-auto text-sm text-[#b8860b] hover:text-opacity-80"
+                className="p-0 h-auto text-sm text-[#8b6b3e] hover:text-opacity-80"
                 onClick={() => navigate("/admin/forgot-password")}
               >
                 Forgot password?

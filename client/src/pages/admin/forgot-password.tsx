@@ -183,7 +183,7 @@ export default function ForgotPassword() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-[#b8860b] hover:bg-opacity-90 mt-2"
+                  className="w-full bg-[#1b1a18] hover:bg-black mt-2"
                   disabled={emailForm.formState.isSubmitting}
                 >
                   {emailForm.formState.isSubmitting ? "Sending..." : "Get Reset Code"}
@@ -266,7 +266,7 @@ export default function ForgotPassword() {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#b8860b] hover:bg-opacity-90 mt-2"
+                    className="w-full bg-[#1b1a18] hover:bg-black mt-2"
                     disabled={resetForm.formState.isSubmitting}
                   >
                     {resetForm.formState.isSubmitting ? "Resetting..." : "Reset Password"}
@@ -278,7 +278,7 @@ export default function ForgotPassword() {
           
           {stage === 'success' && (
             <div className="text-center p-6">
-              <KeyRound className="h-12 w-12 mx-auto text-[#b8860b] mb-4" />
+              <KeyRound className="h-12 w-12 mx-auto text-[#8b6b3e] mb-4" />
               <h3 className="text-lg font-medium mb-2">Password Reset Successful</h3>
               <p className="text-neutral-600 mb-4">
                 Your password has been updated successfully. You can now log in with your new password.
@@ -295,7 +295,7 @@ export default function ForgotPassword() {
         <CardFooter className="flex justify-center">
           <Button 
             variant="ghost" 
-            className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+            className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
             onClick={() => navigate("/")}
           >
             <Home className="h-4 w-4 mr-2" />

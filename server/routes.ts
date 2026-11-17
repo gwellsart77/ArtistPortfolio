@@ -32,7 +32,7 @@ import {
   checkoutFormSchema,
   commissionCategories, commissionSubcategories, commissionSettings, commissionRequests,
   analytics, analyticsSessions, analyticsEvents,
-  orders
+  orders, contactMessages
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -681,6 +681,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: validationError.message });
       }
       res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
+  // Admin inbox: messages sent through the Contact page, newest first
+  app.get("/api/admin/messages", isAdmin, async (_req, res) => {
+    try {
+      const rows = await db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+      res.json(rows);
+    } catch (error) {
+      console.error("Error loading contact messages:", error);
+      res.status(500).json({ message: "Failed to load messages" });
     }
   });
 

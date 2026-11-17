@@ -342,7 +342,7 @@ export default function EditProduct() {
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+              className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
               onClick={() => navigate("/admin/manage-products")}
             >
               <Package className="h-4 w-4 mr-2" />
@@ -350,7 +350,7 @@ export default function EditProduct() {
             </Button>
             <Button 
               variant="ghost" 
-              className="flex items-center text-neutral-600 hover:text-[#b8860b]"
+              className="flex items-center text-neutral-600 hover:text-[#8b6b3e]"
               onClick={() => navigate("/")}
             >
               <Home className="h-4 w-4 mr-2" />
@@ -686,7 +686,7 @@ export default function EditProduct() {
                   {productType === "originals" && height && width && (
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
                       <div className="flex items-center mb-2">
-                        <Calculator className="h-4 w-4 mr-2 text-[#b8860b]" />
+                        <Calculator className="h-4 w-4 mr-2 text-[#8b6b3e]" />
                         <h3 className="text-sm font-medium">Price Calculator</h3>
                       </div>
                       <p className="text-sm text-slate-600 mb-2">
@@ -980,7 +980,7 @@ export default function EditProduct() {
                 <div className="pt-4 border-t">
                   <Button 
                     type="submit" 
-                    className="w-full md:w-auto bg-[#b8860b] hover:bg-opacity-90"
+                    className="w-full md:w-auto bg-[#1b1a18] hover:bg-black"
                     disabled={updateProductMutation.isPending}
                   >
                     {updateProductMutation.isPending ? (

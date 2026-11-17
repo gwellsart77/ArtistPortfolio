@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { adminLogout } from "@/lib/admin-auth";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
+import AdminLayout from "@/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -34,16 +35,14 @@ export default function AdminDashboard() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const search = useSearch();
+  const searchParams = new URLSearchParams(search);
+  const activeTab = searchParams.get("tab") || searchParams.get("returnTab") || "dashboard";
+  const setActiveTab = (tab: string) => {
+    setLocation(tab === "dashboard" ? "/admin/dashboard" : `/admin/dashboard?tab=${tab}`);
+  };
   const [pricePerSquareInch, setPricePerSquareInch] = useState("");
   
-  // Dashboard loads with default tab - no URL parameters needed
-  useEffect(() => {
-    // Ensure clean canonical URL
-    if (location.search) {
-      window.history.replaceState({}, '', '/admin/dashboard');
-    }
-  }, [location.search]);
   
   // Verify session against server on mount
   useEffect(() => {
@@ -150,275 +149,107 @@ export default function AdminDashboard() {
     }
   };
 
-  // Recent activity placeholder data
-  const recentActivity = [
-    { id: 1, action: "Added new artwork", item: "Rising Dawn", time: "2 hours ago" },
-    { id: 2, action: "Updated product price", item: "Luminous Print (11x14)", time: "Yesterday" },
-    { id: 3, action: "Changed website settings", item: "Footer text updated", time: "2 days ago" }
-  ];
+  // Real numbers for the overview (these used to be typed-in placeholders)
+  const { data: allArtworks = [] } = useQuery<any[]>({ queryKey: ["/api/artworks"] });
+  const { data: allProducts = [] } = useQuery<any[]>({ queryKey: ["/api/products"] });
+  const { data: messages = [] } = useQuery<any[]>({ queryKey: ["/api/admin/messages"] });
+  const { data: commissionRequests = [] } = useQuery<any[]>({ queryKey: ["/api/admin/commission/requests"] });
+  const thirtyDaysAgo = useMemo(() => Date.now() - 30 * 24 * 60 * 60 * 1000, []);
+  const recentMessages = (Array.isArray(messages) ? messages : []).filter((m: any) => new Date(m.createdAt).getTime() >= thirtyDaysAgo);
+  const pendingCommissions = (Array.isArray(commissionRequests) ? commissionRequests : []).filter((r: any) => (r.status || "pending") === "pending");
+  const pendingOrders = (Array.isArray(orders) ? orders : []).filter((o: any) => ["pending", "processing"].includes(String(o.status).toLowerCase()));
+  const availableArtworks = (Array.isArray(allArtworks) ? allArtworks : []).filter((a: any) => a.status === "available");
+  const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <span className="font-serif text-2xl text-primary font-bold">Artist Admin</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-gray-600 hover:text-gray-900"
-                onClick={() => setLocation("/")}
-              >
-                <Globe className="h-4 w-4 mr-2" />
-                View Site
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-gray-600 hover:text-gray-900"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Sidebar Navigation */}
-        <aside className="w-64 bg-white border-r border-gray-200 pt-3 pb-3 flex flex-col overflow-y-auto">
-          <div className="flex flex-col flex-grow px-4 space-y-1">
-            <Button 
-              variant={activeTab === "dashboard" ? "secondary" : "ghost"} 
-              className="justify-start mb-2"
-              onClick={() => setActiveTab("dashboard")}
-            >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              Dashboard
-            </Button>
-            
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4 mb-2 px-3">
-              Content
-            </p>
-            <Button 
-              variant={activeTab === "artwork" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("artwork")}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Artwork Gallery
-            </Button>
-            <Button 
-              variant={activeTab === "shop-management" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("shop-management")}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Shop Management
-            </Button>
-            <Button 
-              variant={activeTab === "orders" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("orders")}
-            >
-              <ShoppingBag className="h-4 w-4 mr-2" />
-              Orders
-            </Button>
-            
-            <Button 
-              variant={activeTab === "contact-management" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("contact-management")}
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Contact Management
-            </Button>
-            
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4 mb-2 px-3">
-              Website
-            </p>
-            <Button 
-              variant={activeTab === "settings" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("settings")}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Page Settings
-            </Button>
-            
-            <Button 
-              variant={activeTab === "colors" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("colors")}
-            >
-              <Palette className="h-4 w-4 mr-2" />
-              Website Colors
-            </Button>
-            
-            <Button 
-              variant={activeTab === "analytics" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("analytics")}
-            >
-              <BarChart className="h-4 w-4 mr-2" />
-              Analytics
-            </Button>
-            
-            <Button 
-              variant={activeTab === "mfa" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("mfa")}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              MFA
-            </Button>
-            
-
-            <Button 
-              variant={activeTab === "api-configuration" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("api-configuration")}
-            >
-              <Key className="h-4 w-4 mr-2" />
-              API Configuration
-            </Button>
-            
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4 mb-2 px-3">
-              Support
-            </p>
-            <Button 
-              variant={activeTab === "help-support" ? "secondary" : "ghost"} 
-              className="justify-start"
-              onClick={() => setActiveTab("help-support")}
-            >
-              <HelpCircle className="h-4 w-4 mr-2" />
-              Help & Support
-            </Button>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-8">
+    <AdminLayout>
+        <div>
           {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
-            <div>
-              <h1 className="text-3xl font-serif font-bold mb-6">Welcome to Your Dashboard</h1>
-              
-
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card
-                  className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-200"
-                  onClick={() => setActiveTab("artwork")}
-                  role="link"
-                  aria-label="Go to Artwork Gallery management"
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Artwork Gallery</CardTitle>
-                    <CardDescription>Manage your gallery →</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold">32</p>
-                  </CardContent>
-                </Card>
-
-                <Card
-                  className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-200"
-                  onClick={() => setActiveTab("shop-management")}
-                  role="link"
-                  aria-label="Go to Shop Management"
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Shop Products</CardTitle>
-                    <CardDescription>Manage your shop →</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold">18</p>
-                  </CardContent>
-                </Card>
-
-                <Card
-                  className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-200"
-                  onClick={() => setActiveTab("orders")}
-                  role="link"
-                  aria-label="Go to Orders management"
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Recent Orders</CardTitle>
-                    <CardDescription>Last 30 days → view all</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold">{recentOrdersCount}</p>
-                  </CardContent>
-                </Card>
+            <div className="space-y-8">
+              <div>
+                <h1 className="font-serif text-3xl md:text-4xl">Overview</h1>
+                <p className="text-sm text-[#6e6a63] mt-1">What's happening on gabewells.com.</p>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <Card className="bg-white shadow-sm">
-                    <CardHeader>
-                      <CardTitle>Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {recentActivity.map(activity => (
-                          <div key={activity.id} className="flex items-start space-x-3 pb-3 border-b border-gray-100">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Bell className="h-4 w-4 text-primary" />
+
+              {/* Numbers */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Artworks", value: allArtworks.length, sub: `${availableArtworks.length} available`, href: "/admin/manage" },
+                  { label: "Shop products", value: allProducts.length, sub: "in the shop", href: "/admin/manage-products" },
+                  { label: "Orders to handle", value: pendingOrders.length, sub: `${recentOrdersCount} in the last 30 days`, href: "/admin/orders" },
+                  { label: "New messages", value: recentMessages.length, sub: "last 30 days", href: "/admin/messages" },
+                ].map((c) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    onClick={() => setLocation(c.href)}
+                    className="text-left bg-white border border-[#e3e0da] rounded-lg p-4 hover:border-[#1b1a18] transition-colors"
+                  >
+                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#6e6a63]">{c.label}</p>
+                    <p className="mt-2 text-3xl tabular-nums">{c.value}</p>
+                    <p className="mt-1 text-xs text-[#6e6a63]">{c.sub}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Latest messages */}
+                <div className="lg:col-span-2 bg-white border border-[#e3e0da] rounded-lg">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-[#e3e0da]">
+                    <h2 className="font-serif text-2xl">Latest messages</h2>
+                    <button type="button" onClick={() => setLocation("/admin/messages")} className="text-xs uppercase tracking-[0.14em] text-[#6e6a63] hover:text-[#1b1a18]">
+                      Open inbox
+                    </button>
+                  </div>
+                  {messages.length === 0 ? (
+                    <p className="px-5 py-8 text-sm text-[#6e6a63]">No messages yet.</p>
+                  ) : (
+                    <ul className="divide-y divide-[#e3e0da]">
+                      {messages.slice(0, 5).map((m: any) => (
+                        <li key={m.id}>
+                          <button type="button" onClick={() => setLocation(`/admin/messages#m${m.id}`)} className="w-full text-left px-5 py-3 hover:bg-[#f7f6f3]">
+                            <div className="flex items-baseline justify-between gap-4">
+                              <p className="text-sm font-medium truncate">{m.name} · <span className="font-normal text-[#3d3a35]">{m.subject}</span></p>
+                              <span className="text-xs text-[#6e6a63] shrink-0">{fmtDate(m.createdAt)}</span>
                             </div>
-                            <div>
-                              <p className="font-medium">{activity.action}</p>
-                              <p className="text-sm text-gray-500">{activity.item}</p>
-                              <p className="text-xs text-gray-400">{activity.time}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                            <p className="text-xs text-[#6e6a63] truncate mt-0.5">{m.message}</p>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                
-                <div>
-                  <Card className="bg-white shadow-sm">
-                    <CardHeader>
-                      <CardTitle>Quick Actions</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Button 
-                        className="w-full justify-start" 
-                        onClick={() => setLocation("/admin/upload")}
-                      >
-                        <UploadCloud className="h-4 w-4 mr-2" />
-                        Add New Artwork
+
+                {/* Quick actions + to-do */}
+                <div className="space-y-6">
+                  <div className="bg-white border border-[#e3e0da] rounded-lg p-5">
+                    <h2 className="font-serif text-2xl mb-3">Quick actions</h2>
+                    <div className="space-y-2">
+                      <Button className="w-full justify-start rounded-md" onClick={() => setLocation("/admin/upload")}>
+                        <UploadCloud className="h-4 w-4 mr-2" /> Upload artwork
                       </Button>
-                      <Button 
-                        className="w-full justify-start" 
-                        onClick={() => setLocation(`/admin/add-product?returnTab=${activeTab}`)}
-                      >
-                        <Package className="h-4 w-4 mr-2" />
-                        Add New Product
+                      <Button variant="outline" className="w-full justify-start rounded-md" onClick={() => setLocation("/admin/add-product")}>
+                        <Package className="h-4 w-4 mr-2" /> Add a shop product
                       </Button>
-                      <Button 
-                        className="w-full justify-start" 
-                        onClick={() => setLocation(`/admin/settings?returnTab=${activeTab}`)}
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Edit Page Settings
+                      <Button variant="outline" className="w-full justify-start rounded-md" onClick={() => setLocation("/admin/settings/homepage")}>
+                        <Settings className="h-4 w-4 mr-2" /> Edit the homepage
                       </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
+                  <div className="bg-white border border-[#e3e0da] rounded-lg p-5">
+                    <h2 className="font-serif text-2xl mb-3">To do</h2>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between"><span>Orders to handle</span><span className="tabular-nums">{pendingOrders.length}</span></li>
+                      <li className="flex justify-between"><span>Commission requests waiting</span><span className="tabular-nums">{pendingCommissions.length}</span></li>
+                      <li className="flex justify-between"><span>Latest order</span><span className="text-[#6e6a63]">{orders[0] ? fmtDate(orders[0].createdAt) : "none yet"}</span></li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Artwork Gallery Management Tab */}
           {activeTab === "artwork" && (
             <div>
               <div className="mb-6">
@@ -1672,9 +1503,8 @@ export default function AdminDashboard() {
           )}
 
 
-        </main>
-      </div>
-    </div>
+        </div>
+    </AdminLayout>
   );
 }
 
@@ -1685,6 +1515,7 @@ const stripeSchema = z.object({
 });
 
 function StripeConfigSection() {
+  const [, goTo] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -1772,7 +1603,7 @@ function StripeConfigSection() {
         <div>
           <Button
             variant="ghost"
-            onClick={() => setActiveTab("api-configuration")}
+            onClick={() => goTo("/admin/dashboard?tab=api-configuration")}
             className="mb-4 text-gray-600 hover:text-gray-900"
           >
             ← Back to API Configuration
@@ -1916,6 +1747,7 @@ const emailSchema = z.object({
 });
 
 function EmailConfigSection() {
+  const [, goTo] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -2010,7 +1842,7 @@ function EmailConfigSection() {
         <div>
           <Button
             variant="ghost"
-            onClick={() => setActiveTab("api-configuration")}
+            onClick={() => goTo("/admin/dashboard?tab=api-configuration")}
             className="mb-4 text-gray-600 hover:text-gray-900"
           >
             ← Back to API Configuration
