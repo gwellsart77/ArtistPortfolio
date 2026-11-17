@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { adminLogout } from "@/lib/admin-auth";
 import type { LucideIcon } from "lucide-react";
@@ -219,7 +219,10 @@ export default function AdminLayout({ children, title, description }: AdminLayou
                 {description && <p className="text-sm text-[#6e6a63] mt-1">{description}</p>}
               </div>
             )}
-            {children}
+            {/* Admin pages load on demand; keep the menu visible while one loads */}
+            <Suspense fallback={<p className="py-24 text-center text-sm text-[#6e6a63]">Loading…</p>}>
+              {children}
+            </Suspense>
           </div>
         </main>
       </div>

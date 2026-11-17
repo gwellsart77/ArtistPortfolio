@@ -80,6 +80,9 @@ function Router() {
     <AccessibilityEnhancer>
       <CoreWebVitalsMonitor />
       <AccessibilityStyles />
+      {/* Safety net: any lazy page without its own loading placeholder shows this
+          instead of crashing (React error 426 = "Something didn't load"). */}
+      <Suspense fallback={<div className="min-h-screen bg-[#f7f6f3]" />}>
       <Switch>
       <Route path="/admin/login">
         <AdminLogin />
@@ -354,6 +357,7 @@ function Router() {
         </Layout>
       </Route>
     </Switch>
+      </Suspense>
     </AccessibilityEnhancer>
   );
 }
