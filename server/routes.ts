@@ -90,28 +90,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize API services from database configuration
   await initializeStripe();
 
-  // Expert-recommended test endpoints for cookie debugging
-  app.post('/api/test-cookie', (_req: Request, res: Response): void => {
-    console.log('🧪 TEST COOKIE: Setting test cookie');
-    res.cookie('test_trusted_device', 'test_value_123', {
-      httpOnly: false,
-      secure: false,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 1000 // 1 hour
-    });
-    console.log('🧪 TEST COOKIE: Cookie set, sending response');
-    res.json({ ok: true, message: 'Test cookie set' });
+  // (Removed 2026-11-16: debug endpoints that echoed every cookie, including the
+  // httpOnly sign-in cookie, back to any caller.)
+
+  // Everything under /api/admin requires a signed-in admin, except the few
+  // addresses the sign-in and password-reset screens need. Many admin routes had
+  // no check of their own (orders with customer details, refunds, 2-step setup,
+  // email templates, analytics), so this one rule covers them all.
+  const PUBLIC_ADMIN_PATHS = new Set([
+    "/api/admin/login",
+    "/api/admin/logout",
+    "/api/admin/mfa-status",
+    "/api/admin/mfa/status",
+    "/api/admin/validate-session",
+    "/api/admin/reset-password",
+    "/api/admin/apply-reset",
+  ]);
+  app.use("/api/admin", (req: Request, res: Response, next: NextFunction) => {
+    const path = (req.originalUrl.split("?")[0] || "").replace(/\/+$/, "");
+    if (PUBLIC_ADMIN_PATHS.has(path)) return next();
+    return isAdmin(req, res, next);
   });
 
-  app.get('/api/test-cookie', (req: Request, res: Response): void => {
-    console.log('🧪 TEST COOKIE: Reading cookies:', req.cookies);
-    res.json({ 
-      cookies: req.cookies,
-      testCookie: req.cookies?.test_trusted_device 
-    });
-  });
-  
   // Note: Security middleware (helmet) is configured in server/index.ts
 
   // Rate limiting - DISABLED for development
@@ -1637,35 +1637,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Expert-recommended minimal cookie test endpoint
-  app.get('/api/test-cookie', isAdmin, (req, res) => {
-    console.log('🍪 [COOKIE TEST] Route hit');
-    console.log('🍪 [COOKIE TEST] Incoming cookies:', req.cookies);
-    
-    const testCookie = req.cookies?.['test_cookie'];
-    if (testCookie) {
-      console.log('🍪 [COOKIE TEST] Found test_cookie:', testCookie);
-      res.json({ 
-        message: 'Cookie found!', 
-        cookieValue: testCookie,
-        allCookies: req.cookies 
-      });
-    } else {
-      console.log('🍪 [COOKIE TEST] No test_cookie found, setting one now...');
-      res.cookie('test_cookie', `test_value_${Date.now()}`, {
-        maxAge: 5 * 60 * 1000, // 5 minutes
-        httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        path: '/'
-      });
-      console.log('🍪 [COOKIE TEST] Cookie set successfully');
-      res.json({ 
-        message: 'Test cookie set! Refresh or visit again to see it.',
-        allCookies: req.cookies 
-      });
-    }
-  });
 
   // Sign out: destroy the server session and clear the cookie
   app.post("/api/admin/logout", (req, res) => {

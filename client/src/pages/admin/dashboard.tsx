@@ -764,7 +764,7 @@ export default function AdminDashboard() {
                         console.log("🔍 [MAIN DASHBOARD 'Configure Shop' BUTTON CLICKED]");
                         console.log("🔍 Current activeTab:", activeTab);
                         console.log("🔍 Target URL:", targetUrl);
-                        navigate(targetUrl);
+                        setLocation(targetUrl);
                       }}
                     >
                       Configure Shop

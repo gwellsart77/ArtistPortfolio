@@ -20,7 +20,7 @@ const passwordFormSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newUsername: z.string().min(3, "Username must be at least 3 characters"),
   newPassword: z.string()
-    .min(8, "Password must be at least 8 characters")
+    .min(10, "Password must be at least 10 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
@@ -421,7 +421,7 @@ export default function AccountSecurity() {
                                 />
                               </FormControl>
                               <FormDescription>
-                                Password must be at least 8 characters with uppercase, lowercase, and numbers.
+                                Password must be at least 10 characters with uppercase, lowercase, and numbers.
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
