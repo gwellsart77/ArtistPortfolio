@@ -25,8 +25,12 @@ export const useGoogleAnalytics = () => {
     retry: false,
   });
 
-  const isEnabled = googleAnalyticsEnabled?.value === "true";
-  const measurementId = googleAnalyticsId?.value?.trim();
+  // Admin setting first; otherwise the ID built in from VITE_GA_MEASUREMENT_ID
+  const settingId = googleAnalyticsId?.value?.trim();
+  const measurementId = settingId || (import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined)?.trim();
+  const isEnabled = settingId
+    ? googleAnalyticsEnabled?.value === "true"
+    : googleAnalyticsEnabled?.value !== "false";
 
   useEffect(() => {
     if (!isEnabled || !measurementId || !/^G-[A-Z0-9]{4,20}$/.test(measurementId)) return;

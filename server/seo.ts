@@ -565,8 +565,13 @@ function notFound(site: object[]): RenderedPage {
 // ---------------------------------------------------------------- HTML injection
 
 function gaSnippet(settings: Record<string, string>): string {
-  const id = (settings.google_analytics_id || "").trim();
-  if (settings.google_analytics_enabled !== "true" || !/^G-[A-Z0-9]{4,20}$/.test(id)) return "";
+  // Admin setting first; otherwise the VITE_GA_MEASUREMENT_ID secret the site has always used.
+  const fromSettings = (settings.google_analytics_id || "").trim();
+  const id = fromSettings || (process.env.VITE_GA_MEASUREMENT_ID || "").trim();
+  const enabled = fromSettings
+    ? settings.google_analytics_enabled === "true"
+    : settings.google_analytics_enabled !== "false";
+  if (!enabled || !/^G-[A-Z0-9]{4,20}$/.test(id)) return "";
   return `<script async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${id}');window.__GA_ID__='${id}';</script>`;
 }
