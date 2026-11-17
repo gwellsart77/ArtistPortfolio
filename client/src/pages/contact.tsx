@@ -570,7 +570,7 @@ export default function Contact() {
                         <Checkbox
                           checked={Boolean(field.value)}
                           onCheckedChange={(checked) => field.onChange(Boolean(checked))}
-                          className="mr-2 h-4 w-4"
+                          className="mr-2 h-4 w-4 border-white/70 data-[state=checked]:bg-[#b8860b] data-[state=checked]:border-[#b8860b] data-[state=checked]:text-white"
                         />
                       </FormControl>
                       <FormLabel className="text-sm text-neutral-200">

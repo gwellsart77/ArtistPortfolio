@@ -1,12 +1,12 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
 import { Testimonials } from "@/components/testimonials";
 import { SocialProof } from "@/components/social-proof";
 import { ArtRecommendations } from "@/components/art-recommendations";
+import { cloudinaryTransform } from "@/lib/cloudinary";
 
 export default function Home() {
   // Structured data available for future SEO enhancement
@@ -83,21 +83,22 @@ export default function Home() {
         canonicalUrl="https://gabewells.com"
         ogImage={heroImage?.value || "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=900"}
       />
-      {/* Hero Banner */}
-      <div className="relative h-screen max-h-[600px] overflow-hidden">
-        {heroImageLoading ? (
-          <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <div
-            className="absolute inset-0 bg-center bg-cover"
-            style={{
-              backgroundImage: `url('${heroImage?.value}')`,
-              filter: "brightness(0.9)",
-            }}
-          ></div>
+      {/* Hero Banner — dark backdrop while the image loads, then a soft fade-in */}
+      <div className="relative h-screen max-h-[600px] overflow-hidden bg-neutral-900">
+        {!heroImageLoading && heroImage?.value && (
+          <img
+            src={cloudinaryTransform(heroImage.value, "f_auto,q_auto,c_limit,w_2000")}
+            alt=""
+            aria-hidden="true"
+            fetchPriority="high"
+            decoding="async"
+            onLoad={(e) => e.currentTarget.classList.remove("opacity-0")}
+            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700"
+            style={{ filter: "brightness(0.9)" }}
+          />
         )}
+        {/* Left-side shade so the white heading stays readable over any painting */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" aria-hidden="true" />
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-6 lg:px-12">
             <div className="max-w-2xl">
@@ -106,7 +107,7 @@ export default function Home() {
                   <Skeleton className="h-16 w-full" />
                 </div>
               ) : (
-                <h1 className="text-secondary text-3xl md:text-4xl lg:text-4xl font-serif leading-tight mb-6">
+                <h1 className="text-white drop-shadow text-3xl md:text-4xl lg:text-4xl font-serif leading-tight mb-6">
                   {heroHeading?.value || "Capturing emotions through color and texture"}
                 </h1>
               )}
@@ -115,16 +116,14 @@ export default function Home() {
                   <Skeleton className="h-8 w-full" />
                 </div>
               ) : (
-                <p className="text-secondary text-sm md:text-base mb-8 font-light leading-relaxed">
+                <p className="text-white/90 drop-shadow text-sm md:text-base mb-8 font-light leading-relaxed">
                   {heroSubheading?.value || "Contemporary oil paintings that explore the boundaries between reality and abstraction"}
                 </p>
               )}
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <Link
                   href="/gallery"
-                  className={buttonVariants({
-                    className: "bg-[#b8860b] hover:bg-opacity-90 text-white px-8 py-3 tracking-wider text-sm uppercase",
-                  })}
+                  className="inline-flex items-center justify-center bg-[#b8860b] hover:bg-[#9a7209] text-white px-8 py-3 tracking-widest text-xs uppercase transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
                   View Gallery
                 </Link>
@@ -132,10 +131,7 @@ export default function Home() {
                 {showFeaturedProducts && (
                   <Link
                     href="/shop"
-                    className={buttonVariants({
-                      variant: "outline",
-                      className: "border-secondary text-black hover:bg-secondary hover:bg-opacity-10 px-8 py-3 uppercase tracking-wider text-sm",
-                    })}
+                    className="inline-flex items-center justify-center border border-white/80 text-white hover:bg-white hover:text-neutral-900 px-8 py-3 uppercase tracking-widest text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     Shop Now
                   </Link>
@@ -147,14 +143,15 @@ export default function Home() {
       </div>
 
       {/* AI Art Recommendations */}
+      <div className="bg-[#f5f3ef]">
       <div className="container mx-auto px-6 lg:px-12 py-8">
         <ArtRecommendations 
           title={aiArtTitleData?.value || "Discover Art You'll Love"}
           subtitle={aiArtSubtitleData?.value || "Our AI curator has selected these masterpieces based on your unique taste and browsing patterns"}
           limit={6}
-          showReason={true}
-          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100"
+          className="py-8"
         />
+      </div>
       </div>
 
 

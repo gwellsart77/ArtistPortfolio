@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { adminNavigationGuard } from "@/lib/admin-navigation-guard";
 import { Artwork } from "@shared/schema";
 import ArtworkCard from "@/components/artwork-card";
+import ArtworkLightbox from "@/components/artwork-lightbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/seo";
 import { ArtworkStructuredData } from "@/components/structured-data";
 
@@ -13,6 +13,8 @@ type Category = string;
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState<Category>("imaginative-realism");
+  // Index (within the current category) of the painting open full screen, or null
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // Check for pending admin changes on component mount and force refresh if needed
   useEffect(() => {
@@ -158,7 +160,8 @@ export default function Gallery() {
             return (
               <button
                 key={category}
-                onClick={() => setActiveCategory(category)}
+                onClick={() => { setActiveCategory(category); setLightboxIndex(null); }}
+                aria-pressed={isActive}
                 className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
                   isActive
                     ? "text-neutral-800 border-[#b8860b] font-medium"
@@ -191,9 +194,9 @@ export default function Gallery() {
                   </div>
                 ))
             : filteredArtworks && filteredArtworks.length > 0 ? (
-                filteredArtworks.map((artwork) => (
+                filteredArtworks.map((artwork, i) => (
                   <div key={artwork.id} className="break-inside-avoid mb-4">
-                    <ArtworkCard artwork={artwork} />
+                    <ArtworkCard artwork={artwork} eager={i < 3} onOpen={() => setLightboxIndex(i)} />
                   </div>
                 ))
               ) : (
@@ -207,6 +210,12 @@ export default function Gallery() {
               )}
         </div>
       </div>
+
+      <ArtworkLightbox
+        artworks={filteredArtworks || []}
+        index={lightboxIndex}
+        onIndexChange={setLightboxIndex}
+      />
     </section>
   );
 }
