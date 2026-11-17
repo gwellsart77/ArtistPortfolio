@@ -6,7 +6,7 @@ import ArtworkCard from "@/components/artwork-card";
 import ArtworkLightbox from "@/components/artwork-lightbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
-import { ArtworkStructuredData } from "@/components/structured-data";
+import { STATIC_PAGES } from "@shared/seo";
 
 
 type Category = string;
@@ -95,25 +95,7 @@ export default function Gallery() {
     return filtered.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   }, [artworks, activeCategory]);
 
-  // Create a collection of structured data for artworks
-  const renderArtworkStructuredData = () => {
-    if (!artworks || artworks.length === 0) return null;
-    
-    // Only include up to 5 artworks for structured data to avoid bloating the page
-    return artworks.slice(0, 5).map((artwork, index) => (
-      <ArtworkStructuredData
-        key={index}
-        name={artwork.title}
-        description={artwork.description}
-        image={artwork.imageUrl}
-        creator="Gabe Wells"
-        dateCreated={artwork.year}
-        artMedium={artwork.medium}
-        width={artwork.dimensions ? artwork.dimensions.split('x')[0]?.trim() || "Unknown" : "Unknown"}
-        height={artwork.dimensions && artwork.dimensions.split('x')[1] ? artwork.dimensions.split('x')[1]?.trim() || "Unknown" : "Unknown"}
-      />
-    ));
-  };
+  // Structured data for every artwork is written by the server (server/seo.ts)
 
   // If gallery page is explicitly disabled, show not found message
   // Default to enabled (true) if setting doesn't exist
@@ -135,11 +117,10 @@ export default function Gallery() {
   return (
     <section className="min-h-screen bg-[#f7f6f3]">
       <SEO
-        title="Gallery of Original Oil Paintings | Gabe Wells Fine Art"
-        description="The gallery of Gabe Wells: original oil paintings, sculpture and murals in imaginative realism, from a Denver-based artist."
-        canonicalUrl="https://gabewells.com/gallery"
+        title={STATIC_PAGES["/gallery"].title}
+        description={STATIC_PAGES["/gallery"].description}
+        canonicalUrl="/gallery"
       />
-      {renderArtworkStructuredData()}
 
       {/* Centered page header */}
       <div className="container mx-auto px-5 lg:px-12 pt-12 md:pt-16 pb-10 text-center">

@@ -1,46 +1,41 @@
-import { useEffect, useRef } from 'react';
-import { useLocation } from 'wouter';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { initGoogleAnalytics, trackGAPageView } from '../lib/google-analytics';
+import { initGoogleAnalytics } from '../lib/google-analytics';
 
+/**
+ * Google Analytics 4.
+ *
+ * The server writes the GA tag into every page's HTML when it is switched on in
+ * Admin → Analytics (server/seo.ts), so visits count from the first moment.
+ * Page changes inside the app are counted by GA4's "enhanced measurement"
+ * (browser history events), which is on by default, so there is no manual
+ * page_view here (that would count every page twice).
+ *
+ * This hook only adds the tag if the server did not (for example when the
+ * setting was switched on after the page loaded).
+ */
 export const useGoogleAnalytics = () => {
-  const [location] = useLocation();
-  const prevLocationRef = useRef<string>(location);
-  const initializationRef = useRef<boolean>(false);
-
-  // Fetch Google Analytics settings
-  const { data: googleAnalyticsEnabled } = useQuery({
+  const { data: googleAnalyticsEnabled } = useQuery<{ value: string }>({
     queryKey: ["/api/settings/google_analytics_enabled"],
+    retry: false,
   });
 
-  const { data: googleAnalyticsId } = useQuery({
+  const { data: googleAnalyticsId } = useQuery<{ value: string }>({
     queryKey: ["/api/settings/google_analytics_id"],
+    retry: false,
   });
 
-  // Initialize Google Analytics once when enabled and ID is available
+  const isEnabled = googleAnalyticsEnabled?.value === "true";
+  const measurementId = googleAnalyticsId?.value?.trim();
+
   useEffect(() => {
-    const isEnabled = googleAnalyticsEnabled?.value === "true";
-    const measurementId = googleAnalyticsId?.value;
+    if (!isEnabled || !measurementId || !/^G-[A-Z0-9]{4,20}$/.test(measurementId)) return;
+    if (typeof window === 'undefined' || (window as any).__GA_ID__) return; // server already added it
+    // Admin pages are not counted as visitors
+    if (window.location.pathname.startsWith('/admin')) return;
+    initGoogleAnalytics(measurementId);
+    (window as any).__GA_ID__ = measurementId;
+  }, [isEnabled, measurementId]);
 
-    if (isEnabled && measurementId && !initializationRef.current) {
-      initGoogleAnalytics(measurementId);
-      initializationRef.current = true;
-    }
-  }, [googleAnalyticsEnabled?.value, googleAnalyticsId?.value]);
-
-  // Track page views when location changes
-  useEffect(() => {
-    const isEnabled = googleAnalyticsEnabled?.value === "true";
-    const measurementId = googleAnalyticsId?.value;
-
-    if (isEnabled && measurementId && location !== prevLocationRef.current) {
-      trackGAPageView(location, measurementId);
-      prevLocationRef.current = location;
-    }
-  }, [location, googleAnalyticsEnabled?.value, googleAnalyticsId?.value]);
-
-  return {
-    isGoogleAnalyticsEnabled: googleAnalyticsEnabled?.value === "true",
-    measurementId: googleAnalyticsId?.value
-  };
+  return { isGoogleAnalyticsEnabled: isEnabled, measurementId };
 };

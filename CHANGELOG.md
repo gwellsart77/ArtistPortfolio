@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-11-17] - SEO overhaul + Google Analytics / Search Console report
+
+### Fixed
+- `robots.txt` and `sitemap.xml` pointed Google at `yourdomain.com`. Both are now built live from the database (`server/seo.ts`), with every artwork and shop listing (plus image sitemap).
+- Every URL sent Google the same empty page. The server now writes each page's own title, description, canonical link, social-share tags, structured data and readable content into the HTML (React replaces the content when it starts).
+- Unknown URLs now return a real 404 status (were 200).
+- About page structured data described "vibrant landscapes"; now Gabe's own artist text.
+
+### Added
+- One page per artwork: `/artwork/:id/:name` (`client/src/pages/artwork.tsx`). Gallery cards are real links to it (a normal click still opens the full-screen viewer).
+- Shop URLs carry the painting name: `/shop/product/:id/:name` (old URLs still work, canonical points to the new one).
+- Structured data: Person (artist), WebSite, VisualArtwork, Product + Offer + return policy, Breadcrumbs, CollectionPage, ProfilePage.
+- Admin → Visitor analytics: "Google Search & Analytics Report" (Search Console + GA4, read-only service account, key stored encrypted) and the Search Console verification code field.
+- GA4 tag is written by the server when enabled in admin (admin pages are not counted).
+
+### Changed
+- `SEO` component now updates the server's tags in place (no duplicate titles/descriptions). Page titles/descriptions live in `shared/seo.ts`.
+- CSP allows GA4 regional endpoints.
+
 ## [2025-10-06] - CV Editor Bullet List Hotfix
 
 ### Fixed

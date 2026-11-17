@@ -4,8 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
+import { STATIC_PAGES } from "@shared/seo";
 import { thumbUrl } from "@/lib/cloudinary";
-import { PersonStructuredData } from "@/components/structured-data";
 
 export default function About() {
 
@@ -91,19 +91,11 @@ export default function About() {
   return (
     <section className="min-h-screen bg-[#f7f6f3]">
       <SEO
-        title="About Gabe Wells | Contemporary Fine Artist"
-        description="Discover the artistic vision of Gabe Wells, a contemporary painter specializing in magical realism oil paintings and fine art."
-        canonicalUrl="https://gabewells.com/about"
+        title={STATIC_PAGES["/about"].title}
+        description={STATIC_PAGES["/about"].description}
+        canonicalUrl="/about"
+        ogType="profile"
         ogImage={profileImage?.value || "https://res.cloudinary.com/da3hhngye/image/upload/v1747259587/Lumious_m0wilx.jpg"}
-      />
-      <PersonStructuredData
-        name="Gabe Wells"
-        jobTitle="Contemporary Oil Painter"
-        description="Gabe Wells is a contemporary oil painter based in Denver, Colorado, known for vibrant landscapes that bridge traditional and abstract styles."
-        image={profileImage?.value || "https://res.cloudinary.com/da3hhngye/image/upload/v1747259587/Lumious_m0wilx.jpg"}
-        sameAs={[
-          "https://instagram.com/gabewellsart"
-        ]}
       />
       <div className="container mx-auto px-5 lg:px-12 max-w-3xl pb-20">
         <div className="pt-12 md:pt-16 pb-10 text-center">

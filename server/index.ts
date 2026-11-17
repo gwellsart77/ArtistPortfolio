@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { registerSeoRoutes } from "./seo";
 import { verifyEmailConnection } from "./email";
 import { logger, errorHandler, requestLogger, startHealthMonitoring } from "./utils/logger";
 import { requestIdMiddleware } from "./middleware/request-id.js";
@@ -78,7 +79,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com", "https://www.googletagmanager.com"],
-      connectSrc: ["'self'", "https://api.stripe.com", "https://www.google-analytics.com"],
+      connectSrc: ["'self'", "https://api.stripe.com", "https://www.google-analytics.com", "https://*.google-analytics.com", "https://*.analytics.google.com", "https://*.googletagmanager.com"],
       frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
     },
   },
@@ -239,8 +240,11 @@ app.use(session({
   proxy: isProduction // Trust proxy in production for secure cookies
 }));
 
+// robots.txt and sitemap.xml are built from the live database (server/seo.ts)
+registerSeoRoutes(app);
+
 // Serve static files from the public directory
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(path.join(process.cwd(), 'public'), { index: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();

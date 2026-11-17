@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
-import { ProductStructuredData } from "@/components/product-structured-data";
+import { artformFor, productPath, productTitle } from "@shared/seo";
+import type { Artwork } from "@shared/schema";
 import { Link } from "wouter";
 import { Plus, Minus, ChevronLeft } from "lucide-react";
 import ArtworkLightbox from "@/components/artwork-lightbox";
@@ -41,12 +42,19 @@ export default function ProductDetail() {
   const addItemWithQuantity = useCart((state) => state.addItemWithQuantity);
   
   // Extract ID from URL - this must be consistent
-  const id = parseInt(location.split("/").pop() || "0");
+  // Works for /shop/product/12, /shop/product/12/painting-name and /product/12
+  const id = parseInt(location.match(/product\/(\d+)/)?.[1] || "0");
   
   // Data fetching - this hook must always be called
   const { data: productData, isLoading, error } = useQuery<Product & { variants?: any[] }>({
     queryKey: [`/api/products/${id}`],
     enabled: !!id,
+  });
+
+  // The painting this listing is for (medium for the page title)
+  const { data: linkedArtwork } = useQuery<Artwork>({
+    queryKey: [`/api/artworks/${productData?.artworkId}`],
+    enabled: !!productData?.artworkId,
   });
   
   // Effects - these must always be called in the same order
@@ -139,17 +147,11 @@ export default function ProductDetail() {
   return (
     <div className="bg-[#f7f6f3]">
       <SEO
-        title={`${title} | Gabe Wells`}
-        description={product.description}
+        title={productTitle(product, linkedArtwork?.medium, linkedArtwork ? artformFor(linkedArtwork) : "Painting")}
+        description={product.seoDescription || product.description}
+        canonicalUrl={productPath(product)}
         ogType="product"
         ogImage={product.imageUrl}
-      />
-      <ProductStructuredData
-        name={product.title}
-        description={product.description}
-        image={product.imageUrl}
-        price={product.price}
-        sku={`prod-${product.id}`}
       />
 
       <ArtworkLightbox
@@ -186,7 +188,7 @@ export default function ProductDetail() {
             >
               <img
                 src={thumbUrl(product.imageUrl, 1400)}
-                alt={title}
+                alt={product.altText || linkedArtwork?.altText || `${title}, ${kindLabel(product).toLowerCase()} by Gabe Wells`}
                 className="mx-auto max-h-[75vh] w-auto max-w-full object-contain shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
                 {...({ fetchpriority: "high" } as Record<string, string>)}
               />

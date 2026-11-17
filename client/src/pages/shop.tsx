@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { productPath } from "@shared/seo";
 import { useQuery } from "@tanstack/react-query";
 import { adminNavigationGuard } from "@/lib/admin-navigation-guard";
 import { useLocation } from "wouter";
@@ -6,7 +7,7 @@ import { Product } from "@shared/schema";
 import ProductCard from "@/components/product-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
-import { ProductStructuredData } from "@/components/product-structured-data";
+import { STATIC_PAGES } from "@shared/seo";
 
 type ProductType = "originals" | "prints" | "merchandise";
 type PrintSubtype = "paper" | "canvas" | "framed" | "limited_edition";
@@ -145,7 +146,7 @@ export default function Shop() {
   // Effect to handle if we only have one product related to an artwork
   useEffect(() => {
     if (artworkId && products?.length === 1) {
-      navigate(`/shop/product/${products[0].id}`);
+      navigate(productPath(products[0]!));
     }
   }, [artworkId, products, navigate]);
 
@@ -165,21 +166,7 @@ export default function Shop() {
   // Use the filtered and sorted products for display
   const displayProducts = sortedProducts;
 
-  // Create a collection of structured data for products
-  const renderProductStructuredData = () => {
-    if (!products || products.length === 0) return null;
-
-    return products.slice(0, 5).map((product, index) => (
-      <ProductStructuredData
-        key={index}
-        name={product.title}
-        description={product.description}
-        image={product.imageUrl}
-        price={product.price}
-        sku={`prod-${product.id}`}
-      />
-    ));
-  };
+  // Structured data for every product is written by the server (server/seo.ts)
 
   // Only offer tabs that actually have something in them
   const typeHasProducts = (t: ProductType) => !!products?.some((p) => p.type === t);
@@ -226,12 +213,10 @@ export default function Shop() {
   return (
     <section className="min-h-screen bg-[#f7f6f3]">
       <SEO
-        title="Buy Original Paintings & Prints | Gabe Wells Shop"
-        description="Buy original paintings and prints by Gabe Wells. Imaginative realism oil paintings, available directly from the artist."
-        canonicalUrl="https://gabewells.com/shop"
-        ogType="website"
+        title={STATIC_PAGES["/shop"].title}
+        description={STATIC_PAGES["/shop"].description}
+        canonicalUrl="/shop"
       />
-      {renderProductStructuredData()}
 
       {/* Page header */}
       <div className="container mx-auto px-5 lg:px-12 pt-12 md:pt-16 pb-8 text-center">

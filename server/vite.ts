@@ -5,6 +5,7 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { sendSeoPage } from "./seo";
 
 const viteLogger = createLogger();
 
@@ -59,7 +60,8 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
       const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      // Page-specific title, description, structured data and readable content
+      await sendSeoPage(req, res, page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
@@ -76,10 +78,19 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // index: false so "/" also goes through the SEO page writer below
+  app.use(express.static(distPath, { index: false }));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  const template = fs.readFileSync(path.resolve(distPath, "index.html"), "utf-8");
+
+  // Every page URL gets index.html with its own title, description,
+  // structured data and readable content (see server/seo.ts).
+  app.use("*", (req, res) => {
+    // A missing file (old /assets/*.js, images) is a plain 404, not a web page
+    if (/\.[a-z0-9]{2,5}$/i.test(req.originalUrl.split("?")[0] ?? "") && !req.originalUrl.endsWith(".html")) {
+      res.status(404).type("text/plain").end("Not found");
+      return;
+    }
+    void sendSeoPage(req, res, template);
   });
 }

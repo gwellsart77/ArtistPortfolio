@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { productPath } from "@shared/seo";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,7 @@ export function ShopRecommendations({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.slice(0, limit).map((product) => (
           <Card key={product.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg">
-            <Link href={`/product/${product.id}`}>
+            <Link href={productPath(product)}>
               <div className="relative overflow-hidden">
                 <img
                   src={product.imageUrl}

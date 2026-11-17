@@ -1,5 +1,6 @@
 import { Artwork } from "@shared/schema";
 import { thumbUrl, thumbSrcSet } from "@/lib/cloudinary";
+import { artworkPath } from "@shared/seo";
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -10,18 +11,24 @@ interface ArtworkCardProps {
 }
 
 /**
- * Gallery thumbnail. The whole card is a single button: one click or tap opens
- * the painting full screen. Title and medium appear on hover (desktop) and
- * never block the click.
+ * Gallery thumbnail. One click or tap opens the painting full screen. The card
+ * is a real link to the work's own page (/artwork/:id/:name) so search engines
+ * can find every piece; a normal click is caught and opens the viewer instead.
+ * Ctrl/Cmd-click or middle-click still opens the page. Title and medium appear
+ * on hover (desktop) and never block the click.
  */
 export default function ArtworkCard({ artwork, onOpen, eager = false }: ArtworkCardProps) {
   const alt = artwork.altText || `${artwork.title} - ${artwork.medium}`;
   const srcSet = thumbSrcSet(artwork.imageUrl);
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
+    <a
+      href={artworkPath(artwork)}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        onOpen();
+      }}
       className="gallery-item group relative block w-full overflow-hidden rounded-sm text-left cursor-zoom-in bg-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f6f3]"
       aria-label={`View ${artwork.title} full screen`}
       data-testid={`artwork-card-${artwork.id}`}
@@ -68,6 +75,6 @@ export default function ArtworkCard({ artwork, onOpen, eager = false }: ArtworkC
           <span className="mt-2 text-[11px] uppercase tracking-widest text-[#d8c3a0]">Available</span>
         )}
       </div>
-    </button>
+    </a>
   );
 }

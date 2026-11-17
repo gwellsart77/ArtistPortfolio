@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { TransformWrapper, TransformComponent, type ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import type { Artwork } from "@shared/schema";
 import { fullUrl, thumbUrl } from "@/lib/cloudinary";
+import { productPath, artworkPath } from "@shared/seo";
 
 /**
  * Full-screen artwork viewer used by the gallery and the home page.
@@ -31,6 +32,7 @@ interface ArtworkLightboxProps {
 
 interface ProductData {
   id: number;
+  title: string;
 }
 
 function ShopLink({ artwork }: { artwork: LightboxArtwork }) {
@@ -41,7 +43,7 @@ function ShopLink({ artwork }: { artwork: LightboxArtwork }) {
   // No shop listing yet: invite an inquiry instead of sending people to an empty shop page
   const href =
     products.length === 1 && products[0]
-      ? `/shop/product/${products[0].id}`
+      ? productPath(products[0])
       : products.length > 1
         ? `/shop?artwork=${artwork.id}`
         : `/contact?artwork=${encodeURIComponent(artwork.title)}`;
@@ -333,6 +335,14 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange, showDe
               )}
 
               {artwork.status === "available" && showDetails && <ShopLink artwork={artwork} />}
+
+              <a
+                href={artworkPath(artwork)}
+                className="block mt-6 text-xs tracking-widest uppercase text-white/60 hover:text-white underline-offset-4 hover:underline"
+                data-testid={`lightbox-artwork-page-${artwork.id}`}
+              >
+                Page for this work
+              </a>
             </div>
           </div>}
         </DialogPrimitive.Content>

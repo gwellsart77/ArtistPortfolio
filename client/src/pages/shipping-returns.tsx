@@ -1,13 +1,15 @@
 import { Link } from "wouter";
 import { buttonVariants } from "@/components/ui/button";
 import { SEO } from "@/components/seo";
+import { STATIC_PAGES } from "@shared/seo";
 
 export default function ShippingReturns() {
   return (
     <section className="py-16 md:py-20 bg-white">
-      <SEO 
-        title="Shipping & Returns Policy"
-        description="Learn about our shipping methods, delivery times, and our customer-friendly return policy for artwork and merchandise."
+      <SEO
+        title={STATIC_PAGES["/shipping-returns"].title}
+        description={STATIC_PAGES["/shipping-returns"].description}
+        canonicalUrl="/shipping-returns"
       />
       <div className="container mx-auto px-6 lg:px-12">
         <div className="text-center mb-12">

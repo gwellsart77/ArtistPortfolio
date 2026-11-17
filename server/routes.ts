@@ -18,6 +18,7 @@ import bcrypt from "bcryptjs";
 import DOMPurify from "isomorphic-dompurify";
 import axios from "axios";
 import { storage } from "./storage";
+import { registerGoogleInsightsRoutes } from "./google-insights";
 import { db } from "./db";
 import { authenticator } from "otplib";
 import * as qrcode from "qrcode";
@@ -111,6 +112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (PUBLIC_ADMIN_PATHS.has(path)) return next();
     return isAdmin(req, res, next);
   });
+
+  // Google Analytics + Search Console numbers for Admin / Analytics (read-only, sign-in required)
+  registerGoogleInsightsRoutes(app);
 
   // Note: Security middleware (helmet) is configured in server/index.ts
 

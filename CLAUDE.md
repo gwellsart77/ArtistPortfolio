@@ -76,6 +76,24 @@ Note: `git` is not on the default PATH in Replit — use the full Nix store path
 
 ---
 
+## SEO (added 2026-11-17)
+
+- **`server/seo.ts`** writes per-page `<title>`, description, canonical, OG tags, JSON-LD and readable
+  body content into index.html for every public URL (prod: `serveStatic`; dev: `setupVite`). Also serves
+  `/robots.txt` and `/sitemap.xml` from the DB (60 s cache). Unknown URLs → 404.
+- **`shared/seo.ts`** = single source for page titles/descriptions, Gabe's artist text, slugs and URL builders
+  (`artworkPath`, `productPath`). Use these for any link to an artwork or product.
+- Client `SEO` component updates existing head tags in place. Don't add react-helmet SEO tags or client JSON-LD.
+- Gabe's artist text (his words, keep it): see `ARTIST_STATEMENT_FULL` / `ARTIST_SNIPPET`.
+- Never add `Disallow: /api/` to robots.txt: Google needs the API to render pages.
+- **Google report** (`server/google-insights.ts`, panel in `components/google-insights-panel.tsx`):
+  service account key in `api_configurations` as `GOOGLE_SERVICE_ACCOUNT_KEY` (encrypted); settings
+  `google_analytics_property_id`, `google_search_console_site`, `google_site_verification`,
+  `google_analytics_id`, `google_analytics_enabled`.
+- Smoke test without a database: `DATABASE_URL=postgres://u:p@localhost/x npx tsx scripts/seo-smoke.ts <dir with artworks.json, products.json, settings.json> <outDir>`.
+
+---
+
 ## Project Structure
 
 ```

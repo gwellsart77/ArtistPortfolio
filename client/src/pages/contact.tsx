@@ -16,6 +16,7 @@ import NewsletterSignup from "@/components/newsletter-signup";
 import { MapPin, Mail, Phone, Palette, Home } from "lucide-react";
 import { FaInstagram, FaFacebookF, FaTwitter, FaYoutube } from "react-icons/fa";
 import { SEO } from "@/components/seo";
+import { STATIC_PAGES } from "@shared/seo";
 
 export default function Contact() {
   const { toast } = useToast();
@@ -237,9 +238,9 @@ export default function Contact() {
   return (
     <section className="py-8 md:py-12 bg-[#f7f6f3] text-[#1b1a18]">
       <SEO
-        title="Contact Gabe Wells | Fine Art Inquiries"
-        description="Contact Gabe Wells for art inquiries, commissions, and fine art purchases. Get in touch with the artist directly."
-        canonicalUrl="https://gabewells.com/contact"
+        title={STATIC_PAGES["/contact"].title}
+        description={STATIC_PAGES["/contact"].description}
+        canonicalUrl="/contact"
       />
       <div className="container mx-auto px-6 lg:px-12">
         <div className="pt-8 pb-4">

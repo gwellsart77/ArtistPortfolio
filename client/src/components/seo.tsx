@@ -1,50 +1,91 @@
-import { Helmet } from 'react-helmet';
+import { useEffect } from "react";
+import { DEFAULT_OG_IMAGE, absoluteUrl } from "@shared/seo";
 
 interface SEOProps {
+  /** Full page title, written out in full (nothing is added to it). */
   title: string;
   description: string;
+  /** Path like "/gallery" or a full URL. */
   canonicalUrl?: string;
   ogImage?: string;
   ogType?: string;
   twitterCard?: string;
+  noindex?: boolean;
 }
 
+/**
+ * Keeps the page's title and search/social tags in step when people move
+ * between pages in the app.
+ *
+ * The server already writes these tags (plus structured data) into the HTML for
+ * the first page load (server/seo.ts). This component updates those same tags
+ * in place instead of adding a second copy, so there is never more than one
+ * title, description or canonical link on the page.
+ */
 export const SEO = ({
   title,
   description,
   canonicalUrl,
-  ogImage = 'https://res.cloudinary.com/da3hhngye/image/upload/v1747259587/Lumious_m0wilx.jpg',
-  ogType = 'website',
-  twitterCard = 'summary_large_image'
+  ogImage = DEFAULT_OG_IMAGE,
+  ogType = "website",
+  twitterCard = "summary_large_image",
+  noindex = false,
 }: SEOProps) => {
-  // Removed unused siteUrl variable for type safety
-  const fullTitle = `${title} | Gabe Wells Studio`;
+  useEffect(() => {
+    const clean = (description || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+    const canonical = canonicalUrl
+      ? canonicalUrl.startsWith("http")
+        ? canonicalUrl
+        : absoluteUrl(canonicalUrl)
+      : null;
 
-  return (
-    <Helmet>
-      {/* Basic SEO Tags */}
-      <title>{fullTitle}</title>
-      <meta name="description" content={description} />
-      
-      {/* Canonical URL */}
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-      
-      {/* Open Graph Tags for Social Media */}
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:type" content={ogType} />
-      {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
-      {ogImage && <meta property="og:image" content={ogImage} />}
-      
-      {/* Twitter Card Tags */}
-      <meta name="twitter:card" content={twitterCard} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      {ogImage && <meta name="twitter:image" content={ogImage} />}
+    document.title = title;
+    setMeta("name", "description", clean);
+    setMeta("name", "robots", noindex ? "noindex, follow" : "index, follow, max-image-preview:large");
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", clean);
+    setMeta("property", "og:type", ogType);
+    setMeta("property", "og:image", ogImage);
+    setMeta("property", "og:url", canonical);
+    setMeta("name", "twitter:card", twitterCard);
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", clean);
+    setMeta("name", "twitter:image", ogImage);
+    setCanonical(canonical);
+  }, [title, description, canonicalUrl, ogImage, ogType, twitterCard, noindex]);
 
-      {/* Additional SEO meta tags */}
-      <meta name="robots" content="index, follow" />
-      <meta name="author" content="Gabe Wells" />
-    </Helmet>
-  );
+  return null;
 };
+
+function setMeta(attr: "name" | "property", key: string, value: string | null) {
+  const nodes = document.head.querySelectorAll<HTMLMetaElement>(`meta[${attr}="${key}"]`);
+  // Never leave duplicates behind
+  nodes.forEach((n, i) => i > 0 && n.remove());
+  let el = nodes[0] ?? null;
+  if (!value) {
+    el?.remove();
+    return;
+  }
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", value);
+}
+
+function setCanonical(href: string | null) {
+  const nodes = document.head.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]');
+  nodes.forEach((n, i) => i > 0 && n.remove());
+  let el = nodes[0] ?? null;
+  if (!href) {
+    el?.remove();
+    return;
+  }
+  if (!el) {
+    el = document.createElement("link");
+    el.rel = "canonical";
+    document.head.appendChild(el);
+  }
+  el.href = href;
+}

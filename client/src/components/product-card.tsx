@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { productPath } from "@shared/seo";
 import { Product } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 import { thumbUrl, thumbSrcSet } from "@/lib/cloudinary";
@@ -22,7 +23,7 @@ export default function ProductCard({ product, eager = false }: ProductCardProps
 
   return (
     <Link
-      href={`/shop/product/${product.id}`}
+      href={productPath(product)}
       className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e] focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f6f3]"
       data-testid={`product-card-${product.id}`}
     >

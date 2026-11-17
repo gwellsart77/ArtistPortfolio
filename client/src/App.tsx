@@ -4,8 +4,6 @@ import "@/lib/emergency-cache-reset"; // Initialize emergency cache reset utilit
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect } from "react";
-import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
 import { useGoogleAnalytics } from "./hooks/use-google-analytics";
 // Removed unused import: initPageTracking
@@ -23,7 +21,7 @@ import Contact from "@/pages/contact";
 import Checkout from "@/pages/checkout";
 import OrderConfirmation from "@/pages/order-confirmation";
 import ShippingReturns from "@/pages/shipping-returns";
-// Removed unused import: ArtworkDetail
+import ArtworkPage from "@/pages/artwork";
 import SecurityPolicy from "@/pages/security-policy";
 // Lazy load heavy admin components for better performance
 import { lazy, Suspense } from "react";
@@ -341,8 +339,9 @@ function Router() {
             <Route path="/gallery" component={Gallery} />
 
             <Route path="/shop" component={Shop} />
-            <Route path="/shop/product/:id" component={ProductDetail} />
+            <Route path="/shop/product/:id/:slug?" component={ProductDetail} />
             <Route path="/product/:id" component={ProductDetail} />
+            <Route path="/artwork/:id/:slug?" component={ArtworkPage} />
 
             <Route path="/order-confirmation" component={OrderConfirmation} />
             <Route path="/about" component={About} />
@@ -360,15 +359,8 @@ function Router() {
 }
 
 function App() {
-  // Initialize Google Analytics when app loads
-  useEffect(() => {
-    // Verify required environment variable is present
-    if (!import.meta.env.VITE_GA_MEASUREMENT_ID) {
-      console.warn('Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID');
-    } else {
-      initGA();
-    }
-  }, []);
+  // Google Analytics is set in Admin → Analytics and added by the server
+  // (server/seo.ts) plus useGoogleAnalytics() as a fallback.
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, BarChart, Eye, Globe, Shield, RefreshCcw } from "lucide-react";
 import { navigateBackToDashboard } from "@/lib/navigation-utils";
+import GoogleInsightsPanel from "@/components/google-insights-panel";
 
 export default function AnalyticsSettings() {
   const [, navigate] = useLocation();
@@ -141,6 +142,9 @@ export default function AnalyticsSettings() {
             Configure how you want to track visitor behavior and site performance. You can use built-in analytics, Google Analytics, or both.
           </p>
         </div>
+
+        {/* Google Search + GA4 numbers and the Google connection */}
+        <GoogleInsightsPanel />
 
         {/* Built-in Analytics Section */}
         <Card>

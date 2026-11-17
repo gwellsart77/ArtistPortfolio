@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
+import { STATIC_PAGES } from "@shared/seo";
 import { Testimonials } from "@/components/testimonials";
 import { SocialProof } from "@/components/social-proof";
 import { ArtRecommendations } from "@/components/art-recommendations";
@@ -78,9 +79,9 @@ export default function Home() {
   return (
     <div className="fade-in">
       <SEO
-        title="Contemporary Oil Paintings"
-        description="Original oil paintings and sculpture by Gabe Wells, a Denver artist working in imaginative realism. View the gallery and shop original work."
-        canonicalUrl="https://gabewells.com"
+        title={STATIC_PAGES["/"].title}
+        description={STATIC_PAGES["/"].description}
+        canonicalUrl="/"
         ogImage={heroImage?.value || "https://res.cloudinary.com/da3hhngye/image/upload/v1747259587/Lumious_m0wilx.jpg"}
       />
       {/* Hero Banner — dark backdrop while the image loads, then a soft fade-in */}
