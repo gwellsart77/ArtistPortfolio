@@ -12,7 +12,8 @@ Live state is in: `CLAUDE.md` (repo root), sections "Deployment Pipeline" and "S
 |---|---|
 | What's live right now, how do I deploy? | `CLAUDE.md` → Deployment Pipeline |
 | How does SEO work in the code? | `CLAUDE.md` → SEO; `server/seo.ts`, `shared/seo.ts` |
-| What's next? | `docs/project/PROJECT_ROADMAP.md` → Status, Phase 3 |
+| What's next? | `docs/project/PROJECT_ROADMAP.md` → Status (R3 website leftovers, Phase 3 SEO review) |
+| Why do the website docs live here and not on Gabe's Mac? | `docs/project/DECISIONS.md` → "One set of website docs" (2026-11-17) |
 | Why did we decide X? | `docs/project/DECISIONS.md` |
 | What failed before / gotchas? | `CLAUDE.md` → Known failure patterns |
 | Baseline numbers, plain-English plan? | Cowork Project doc `claude/seo-plan.md` |
