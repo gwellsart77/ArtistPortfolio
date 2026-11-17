@@ -20,3 +20,10 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     });
   }
 };
+/**
+ * Settings that must never be readable by the public: the admin login, the 2-step
+ * secret, password-reset codes and any API keys/tokens/passwords.
+ * A signed-in admin can still read them (the settings pages need some of them).
+ */
+export const isSensitiveSettingKey = (key: string): boolean =>
+  /^admin_|secret|password|passwd|token|api_?key|private|mfa|reset_code|reset_expires|credential/i.test(key);

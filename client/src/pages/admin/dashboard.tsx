@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { adminLogout } from "@/lib/admin-auth";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -66,8 +67,8 @@ export default function AdminDashboard() {
       });
   }, [setLocation, toast]);
   
-  const handleLogout = () => {
-    sessionStorage.removeItem("admin_authenticated");
+  const handleLogout = async () => {
+    await adminLogout();
     setLocation("/admin/login");
     toast({
       title: "Logged out",

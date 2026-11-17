@@ -37,7 +37,7 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { upload } from "./cloudinary";
-import { isAdmin } from "./middleware";
+import { isAdmin, isSensitiveSettingKey } from "./middleware";
 import { mfaService } from "./mfa";
 import { 
   getGootenProductCategories,
@@ -307,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Security audit endpoint (admin only) - moved to top to ensure it's handled before catch-all routes
-  app.get("/api/admin/security-audit", (_req: Request, res: Response): void => {
+  app.get("/api/admin/security-audit", isAdmin, (_req: Request, res: Response): void => {
     console.log("=== SECURITY AUDIT ENDPOINT HIT ===");
     res.setHeader('Content-Type', 'application/json');
     const securityStatus = {
@@ -350,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update artwork categories from magical-realism to imaginative-realism
-  app.post("/api/admin/update-categories", async (_req: Request, res: Response): Promise<void> => {
+  app.post("/api/admin/update-categories", isAdmin, async (_req: Request, res: Response): Promise<void> => {
     try {
       // Find artworks with magical-realism category
       const magicalRealismArtworks = await db
@@ -1205,7 +1205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product Management API routes
   
   // Create a new product
-  app.post("/api/products", async (req, res) => {
+  app.post("/api/products", isAdmin, async (req, res) => {
     try {
       // Validate the request body
       const productData = insertProductSchema.parse(req.body);
@@ -1240,7 +1240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update product details
-  app.put("/api/products/:id", async (req, res) => {
+  app.put("/api/products/:id", isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -1352,7 +1352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Update product availability
-  app.patch("/api/products/:id/availability", async (req, res) => {
+  app.patch("/api/products/:id/availability", isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -1468,7 +1468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Setup MFA endpoint - Demo version without authentication for testing
-  app.post("/api/admin/setup-mfa", async (req, res) => {
+  app.post("/api/admin/setup-mfa", isAdmin, async (req, res) => {
     try {
       // Get the username from session or use default
       const username = req.session?.username || "admin";
@@ -1496,7 +1496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Verify and enable MFA - Demo version without authentication for testing
-  app.post("/api/admin/verify-mfa", async (req, res) => {
+  app.post("/api/admin/verify-mfa", isAdmin, async (req, res) => {
     try {
       const { verificationCode, secret } = req.body;
       
@@ -1542,7 +1542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Disable MFA - Demo version without authentication for testing
-  app.post("/api/admin/disable-mfa", async (req, res) => {
+  app.post("/api/admin/disable-mfa", isAdmin, async (req, res) => {
     try {
       // Disable MFA by updating the setting
       await storage.upsertSetting({
@@ -1564,7 +1564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update admin credentials - Demo version without authentication for testing
-  app.post("/api/admin/update-credentials", async (req, res) => {
+  app.post("/api/admin/update-credentials", isAdmin, async (req, res) => {
     try {
       console.log("Session state:", req.session);
       console.log("Is authenticated in session:", req.session?.isAuthenticated);
@@ -1600,18 +1600,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      if (String(newPassword).length < 10) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must be at least 10 characters"
+        });
+      }
+
       // Update username
       await storage.upsertSetting({
         key: "admin_username",
         value: newUsername
       });
-      
-      // Update password
+
+      // Update password (stored hashed, never in plain text)
       await storage.upsertSetting({
         key: "admin_password",
-        value: newPassword
+        value: await bcrypt.hash(newPassword, 12)
       });
-      
+
       // Update session with new username
       if (req.session) {
         req.session.username = newUsername;
@@ -1631,7 +1638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Expert-recommended minimal cookie test endpoint
-  app.get('/api/test-cookie', (req, res) => {
+  app.get('/api/test-cookie', isAdmin, (req, res) => {
     console.log('🍪 [COOKIE TEST] Route hit');
     console.log('🍪 [COOKIE TEST] Incoming cookies:', req.cookies);
     
@@ -1660,6 +1667,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sign out: destroy the server session and clear the cookie
+  app.post("/api/admin/logout", (req, res) => {
+    const done = () => {
+      res.clearCookie("sessionId", { path: "/" });
+      res.json({ success: true });
+    };
+    if (req.session) {
+      req.session.destroy(() => done());
+    } else {
+      done();
+    }
+  });
+
   // Verify admin session is still valid (used by client-side auth guards)
   app.get("/api/admin/verify-session", isAdmin, (_req, res) => {
     res.json({ authenticated: true });
@@ -1669,7 +1689,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("🚀🚀🚀 EXECUTING DEBUGGED /api/admin/login HANDLER - sessionID:", req.sessionID);
     try {
       console.log("🔍 [LOGIN] === LOGIN ROUTE START ===");
-      console.log("🔍 [LOGIN] Full request body:", req.body);
       console.log("🔍 [LOGIN] Incoming cookies:", req.cookies);
       console.log("🔍 [LOGIN] trusted_device cookie:", req.cookies?.['trusted_device']);
       
@@ -1702,9 +1721,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mfaEnabledSetting = await storage.getSetting("admin_mfa_enabled");
       const mfaSecretSetting = await storage.getSetting("admin_mfa_secret");
       
-      // Reset to defaults if settings are completely missing
+      // First-time setup only: before any password is stored, the default works once.
+      const hasStoredPassword = !!adminPasswordSetting?.value;
       const adminUsername = adminUsernameSetting?.value || "admin";
-      const adminPassword = adminPasswordSetting?.value || "password";
+      const adminPassword = adminPasswordSetting?.value || "";
       const mfaEnabled = mfaEnabledSetting?.value === "true";
       const mfaSecret = mfaSecretSetting?.value || null;
       
@@ -1714,7 +1734,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if password is hashed or plain text (for migration purposes)
       let isValidPassword = false;
       
-      if (adminPassword.startsWith('$2a$') || adminPassword.startsWith('$2b$')) {
+      if (!hasStoredPassword) {
+        isValidPassword = false; // handled by the first-time setup check below
+      } else if (adminPassword.startsWith('$2a$') || adminPassword.startsWith('$2b$')) {
         // Password is already hashed, use bcrypt compare
         isValidPassword = await bcrypt.compare(password, adminPassword);
       } else {
@@ -1731,7 +1753,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Also allow default credentials for first-time setup
-      const isDefaultCredentials = username === "admin" && password === "password";
+      // Only when no password has ever been set (first-time setup). This used to work
+      // at any time and overwrote the real password.
+      const isDefaultCredentials = !hasStoredPassword && username === "admin" && password === "password";
       if (isDefaultCredentials) {
         isValidPassword = true;
         // Hash the default password for security
@@ -1745,7 +1769,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 [LOGIN] Checking isValidPassword:", isValidPassword);
       console.log("🔍 [LOGIN] Checking username match:", username === adminUsername);
       
-      if (isValidPassword || (username === adminUsername && isValidPassword)) {
+      const usernameMatches =
+        String(username).trim().toLowerCase() === String(adminUsername).trim().toLowerCase();
+      if (usernameMatches && isValidPassword) {
         console.log("✅ [LOGIN] Password validation passed");
         
         // Check if MFA is enabled for the account
@@ -1977,14 +2003,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // In development mode, accept any email address for password reset
-      // In production, you would validate this against registered admin emails
-      console.log(`Password reset requested for email: ${email}`);
-      
-      // Development mode - accept any email for simplified testing
-      
-      // Generate a simple reset code (6 digits)
-      const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+      // Same answer whether or not the address matches, so nobody can probe for it.
+      const genericReply = {
+        success: true,
+        message: "If that address belongs to the site admin, a reset code has been emailed to it."
+      };
+
+      // Only the admin's own sign-in email may receive a code
+      const adminUsernameSetting = await storage.getSetting("admin_username");
+      const adminEmail = String(adminUsernameSetting?.value || "").trim().toLowerCase();
+      if (!adminEmail.includes("@") || String(email).trim().toLowerCase() !== adminEmail) {
+        return res.status(200).json(genericReply);
+      }
+
+      // Generate an unguessable 6-digit code
+      const { randomInt } = await import("crypto");
+      const resetCode = randomInt(100000, 1000000).toString();
+      await storage.upsertSetting({ key: "admin_reset_attempts", value: "0" });
       
       // Store the reset code temporarily (for 10 minutes)
       await storage.upsertSetting({
@@ -2018,14 +2053,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `
       });
       
-      // Always display the code directly to ensure users can reset their password
-      // This is critical for when email delivery fails
-      return res.status(200).json({
-        success: true,
-        message: "Your password reset code is: " + resetCode + ". Use this code to reset your password.",
-        resetCode: resetCode, // Always show the code to ensure users can access their account
-        emailSent: emailSent
-      });
+      // The code goes ONLY to the admin's inbox. It used to be returned here, which let
+      // anyone reset the admin password.
+      if (!emailSent) {
+        console.error("Password reset email could not be sent");
+      }
+      return res.status(200).json(genericReply);
     } catch (error) {
       console.error("Error generating reset code:", error);
       return res.status(500).json({
@@ -2079,20 +2112,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Verify reset code
-      if (resetCode !== storedResetCode) {
+      // Verify reset code (5 wrong tries cancels the code)
+      if (String(resetCode).trim() !== storedResetCode) {
+        const attemptsSetting = await storage.getSetting("admin_reset_attempts");
+        const attempts = parseInt(attemptsSetting?.value || "0") + 1;
+        await storage.upsertSetting({ key: "admin_reset_attempts", value: String(attempts) });
+        if (attempts >= 5) {
+          await storage.upsertSetting({ key: "admin_reset_code", value: "" });
+          await storage.upsertSetting({ key: "admin_reset_expires", value: "0" });
+        }
         return res.status(400).json({
           success: false,
           message: "Invalid reset code"
         });
       }
       
-      // Update password
+      // Update password (stored hashed)
       await storage.upsertSetting({
         key: "admin_password",
-        value: newPassword
+        value: await bcrypt.hash(newPassword, 12)
       });
-      
+
       // Clear reset code
       await storage.upsertSetting({
         key: "admin_reset_code",
@@ -2123,7 +2163,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/settings", async (req, res) => {
     try {
       const settings = await storage.getAllSettings();
-      res.json(settings);
+      // Secrets (passwords, 2-step secret, API keys) only for a signed-in admin
+      const signedIn = !!req.session?.isAuthenticated;
+      res.json(signedIn ? settings : settings.filter((s: { key: string }) => !isSensitiveSettingKey(s.key)));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch settings" });
     }
@@ -2133,8 +2175,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/settings/:key", async (req, res) => {
     try {
       const { key } = req.params;
+      // Secrets (passwords, 2-step secret, API keys) are never public
+      if (isSensitiveSettingKey(key) && !req.session?.isAuthenticated) {
+        return res.status(404).json({ message: `Setting '${key}' not found` });
+      }
       const setting = await storage.getSetting(key);
-      
+
       if (!setting) {
         return res.status(404).json({ message: `Setting '${key}' not found` });
       }
@@ -3037,7 +3083,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!paymentIntentId) {
         return res.status(400).json({ message: "Payment intent ID is required" });
       }
-      
+
+      // Confirm with Stripe that this payment really happened and covers the order.
+      // (Before, anyone could mark any order as paid by sending a made-up ID.)
+      if (!stripe) {
+        return res.status(503).json({ message: "Payments are not configured" });
+      }
+      let intent: Stripe.PaymentIntent;
+      try {
+        intent = await stripe.paymentIntents.retrieve(String(paymentIntentId));
+      } catch {
+        return res.status(400).json({ message: "Payment not found" });
+      }
+      if (!["succeeded", "processing", "requires_capture"].includes(intent.status)) {
+        return res.status(400).json({ message: "Payment has not completed" });
+      }
+      // Product prices are stored in whole dollars; Stripe amounts are in cents
+      const paidItems = await storage.getOrderItemsWithDetails(orderId);
+      const itemsCents = paidItems.reduce(
+        (sum: number, it: any) => sum + Math.round(Number(it.unitPrice) * 100) * Math.max(1, Number(it.quantity) || 1),
+        0
+      );
+      if (intent.amount < itemsCents) {
+        console.error(`Payment ${intent.id} (${intent.amount}c) is less than order ${orderId} items (${itemsCents}c)`);
+        return res.status(400).json({ message: "Payment amount does not match the order" });
+      }
+
       // Update the order with the payment intent ID
       const order = await storage.updateOrderPaymentIntent(orderId, paymentIntentId);
       if (!order) {
@@ -4952,7 +5023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Invoice Settings Routes
-  app.get("/api/admin/invoice-settings", async (req, res) => {
+  app.get("/api/admin/invoice-settings", isAdmin, async (req, res) => {
     try {
       const settings = await storage.getSetting("invoice_settings");
       if (settings) {
@@ -4976,7 +5047,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/invoice-settings", async (req, res) => {
+  app.post("/api/admin/invoice-settings", isAdmin, async (req, res) => {
     try {
       const invoiceSettings = req.body;
       

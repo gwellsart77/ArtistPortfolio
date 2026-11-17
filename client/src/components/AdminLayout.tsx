@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { adminLogout } from "@/lib/admin-auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { 
@@ -233,10 +234,8 @@ export default function AdminLayout({ children, title, description }: AdminLayou
     );
   };
 
-  const handleLogout = () => {
-    // Clear authentication
-    sessionStorage.removeItem("admin_authenticated");
-    // Navigate to login
+  const handleLogout = async () => {
+    await adminLogout();
     navigate("/admin/login");
   };
 

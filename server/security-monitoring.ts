@@ -1,4 +1,5 @@
 import type { Express, Request, Response, NextFunction } from "express";
+import { isAdmin } from "./middleware";
 
 interface SecurityEvent {
   timestamp: string;
@@ -210,7 +211,7 @@ export function setupSecurityMonitoring(app: Express) {
   });
 
   // Security monitoring API endpoint
-  app.get("/api/admin/security-monitoring", (req: Request, res: Response) => {
+  app.get("/api/admin/security-monitoring", isAdmin, (req: Request, res: Response) => {
     try {
       const stats = securityMonitor.getStats();
       res.json(stats);
@@ -221,7 +222,7 @@ export function setupSecurityMonitoring(app: Express) {
   });
 
   // Unblock IP endpoint
-  app.post("/api/admin/unblock-ip", (req: Request, res: Response) => {
+  app.post("/api/admin/unblock-ip", isAdmin, (req: Request, res: Response) => {
     try {
       securityMonitor.clearAllBlocks();
       res.json({ success: true, message: "All IP blocks cleared" });
@@ -232,7 +233,7 @@ export function setupSecurityMonitoring(app: Express) {
   });
 
   // Unblock IP endpoint (for admin use)
-  app.post("/api/admin/unblock-ip", (req: Request, res: Response) => {
+  app.post("/api/admin/unblock-ip", isAdmin, (req: Request, res: Response) => {
     try {
       const { ip } = req.body;
       if (!ip) {

@@ -74,8 +74,8 @@ export default function ForgotPassword() {
       
       if (responseData.success) {
         toast({
-          title: "Reset code sent to your email",
-          description: "Please check your email for the reset code",
+          title: "Check your email",
+          description: responseData.message || "If that address belongs to the site admin, a reset code is on its way.",
         });
         
         // Always advance to the reset code stage regardless of whether a code is returned
