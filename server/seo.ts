@@ -473,7 +473,7 @@ ${settings.about_artist_statement ? `<h2 style="font-family:'Cormorant Garamond'
   }
 
   // ---- Artwork page: /artwork/:id(/:slug)
-  let m = path.match(/^\/(?:artwork|gallery)\/(\d+)(?:\/[^/]*)?$/);
+  let m = path.match(/^\/artwork\/(\d+)(?:\/[^/]*)?$/);
   if (m) {
     const a = byId.get(Number(m[1]));
     if (!a) return notFound(site);
