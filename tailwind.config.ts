@@ -5,12 +5,21 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        serif: ['"Cormorant Garamond"', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        ink: "#1b1a18",
+        paper: "#f7f6f3",
+        stone: "#6e6a63",
+        line: "#e3e0da",
+        bronze: { DEFAULT: "#8b6b3e", dark: "#6f5530", light: "#d8c3a0" },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

@@ -6,45 +6,38 @@ import { formatCurrency } from "@/lib/utils";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
 import { ProductStructuredData } from "@/components/product-structured-data";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { ArrowLeft, Home, ShoppingCart, Plus, Minus, ChevronLeft, Clock, AlertTriangle, Maximize2, X } from "lucide-react";
+import { Link } from "wouter";
+import { Plus, Minus, ChevronLeft } from "lucide-react";
+import ArtworkLightbox from "@/components/artwork-lightbox";
+import { thumbUrl } from "@/lib/cloudinary";
+import { displayTitle, kindLabel, sizeLabel } from "@/lib/product-display";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useArtworkTheme } from "@/hooks/use-artwork-theme";
-import { ExpandableText } from "@/components/expandable-text";
 
 // Helper function to extract dimensions from variant name
 function extractDimensions(variantName: string): string {
   // Look for patterns like "20″×20″", "24″×30″", "16"×20"", etc.
   const dimensionMatch = variantName.match(/(\d+[″"]?\s*[×x]\s*\d+[″"]?)/i);
-  return dimensionMatch ? dimensionMatch[1] : variantName;
+  return dimensionMatch?.[1] ?? variantName;
 }
 
 // Helper function to extract dimensions from description
 function extractDimensionsFromDescription(description: string): string | null {
   // Look for patterns like "16"x20"", "16″×20″", "24"×30"", etc. in description
   const dimensionMatch = description.match(/(\d+[″"]?\s*[×x]\s*\d+[″"]?)/i);
-  return dimensionMatch ? dimensionMatch[1] : null;
+  return dimensionMatch?.[1] ?? null;
 }
 
 export default function ProductDetail() {
   // ABSOLUTELY ALL HOOKS MUST BE CALLED FIRST - NO EXCEPTIONS
-  const [location, navigate] = useLocation();
+  const [location] = useLocation();
   const { toast: showToast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
-  const [showTimeLimitDialog, setShowTimeLimitDialog] = useState(false);
-  const [imageZoomOpen, setImageZoomOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
   const addItemWithQuantity = useCart((state) => state.addItemWithQuantity);
   
   // Extract ID from URL - this must be consistent
@@ -72,65 +65,26 @@ export default function ProductDetail() {
   // Handle adding to cart
   const handleAddToCart = () => {
     if (!product) return;
-    
-    // If this is an original painting, show time limit dialog and reserve it
-    if (product.type === 'Original Paintings') {
-      // Make a reservation call to the server
-      fetch('/api/cart/reserve', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ productId: product.id })
-      })
-      .then(response => response.json())
-      .catch(error => {
-        console.error('Error reserving painting:', error);
-      });
-      
-      // Add to cart
-      addItemWithQuantity(
-        {
-          id: product.id,
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          imageUrl: product.imageUrl,
-          type: product.type, 
-        },
-        quantity
-      );
-      
-      // Show time limit dialog
-      setShowTimeLimitDialog(true);
-      
-      // Show toast notification as well
-      showToast({
-        title: "⏱️ Time-Limited Addition!",
-        description: `"${product.title}" added to your cart. You have 15 minutes to complete your purchase.`,
-      });
-    } else {
-      // Regular products without time limit
-      addItemWithQuantity(
-        {
-          id: product.id,
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          imageUrl: product.imageUrl,
-          type: product.type,
-        },
-        quantity
-      );
-      
-      // Regular toast for non-original items
-      showToast({
-        title: "Added to cart",
-        description: `${quantity} ${quantity === 1 ? 'item' : 'items'} of ${product.title} added to your cart.`,
-      });
-    }
-    
-    // Reset quantity to 1 after adding to cart
+    const price = selectedVariant ? selectedVariant.price : product.price;
+    addItemWithQuantity(
+      {
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        price,
+        imageUrl: product.imageUrl,
+        type: product.type,
+      },
+      product.type === "originals" ? 1 : quantity
+    );
+    showToast({
+      title: "Added to your cart",
+      description:
+        product.type === "originals"
+          ? `${displayTitle(product.title)} is held in your cart for 15 minutes.`
+          : `${displayTitle(product.title)} was added to your cart.`,
+    });
+    setJustAdded(true);
     setQuantity(1);
   };
 
@@ -149,55 +103,46 @@ export default function ProductDetail() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto px-6 py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center space-x-4 mb-8">
-            <Button variant="outline" size="icon" onClick={() => navigate("/shop")}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Skeleton className="h-8 w-64" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <Skeleton className="h-[500px] w-full rounded-md" />
-            <div className="space-y-6">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
+      <div className="container mx-auto px-5 lg:px-12 py-10 md:py-16">
+        <Skeleton className="h-4 w-24 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-16">
+          <Skeleton className="md:col-span-7 aspect-[4/5] w-full rounded-none" />
+          <div className="md:col-span-5 space-y-5">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-12 w-full" />
           </div>
         </div>
       </div>
     );
   }
-  
+
   // Error state
   if (error || !product) {
     return (
-      <div className="container mx-auto px-6 py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold mb-4">Product Not Found</h2>
-            <p className="text-neutral-600 mb-8">We couldn't find the product you're looking for.</p>
-            <Button onClick={() => navigate("/shop")}>
-              Back to Shop
-            </Button>
-          </div>
-        </div>
+      <div className="container mx-auto px-5 py-24 text-center">
+        <h1 className="font-serif text-3xl mb-3">This piece isn't available</h1>
+        <p className="text-[#6e6a63] mb-8">It may have sold or been moved.</p>
+        <Link href="/shop" className="inline-block border-b border-[#8b6b3e] pb-1 text-xs uppercase tracking-[0.14em]">
+          Back to the shop
+        </Link>
       </div>
     );
   }
-  
-  // Theme functionality temporarily removed to fix critical purchase system error
+
+  const title = displayTitle(product.title);
+  const size = selectedVariant ? extractDimensions(selectedVariant.variant_name) : sizeLabel(product) || (product.type === "prints" ? extractDimensionsFromDescription(product.description || "") : null);
+  const isOriginal = product.type === "originals";
+  const inStock = (product.stock || 0) > 0;
 
   return (
-    <div className="container mx-auto px-6 py-16 bg-[#f8f5f2] product-detail-section">
+    <div className="bg-[#f7f6f3]">
       <SEO
-        title={`${product.title} | Art Shop`}
+        title={`${title} | Gabe Wells`}
         description={product.description}
         ogType="product"
+        ogImage={product.imageUrl}
       />
       <ProductStructuredData
         name={product.title}
@@ -206,264 +151,147 @@ export default function ProductDetail() {
         price={product.price}
         sku={`prod-${product.id}`}
       />
-      
-      {/* Time Limit Dialog */}
-      <Dialog open={showTimeLimitDialog} onOpenChange={setShowTimeLimitDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-amber-700 text-xl">
-              <Clock className="h-6 w-6 mr-2 animate-pulse" />
-              Original Painting Time Limit
-            </DialogTitle>
-            <DialogDescription className="text-base pt-4">
-              <div className="space-y-4">
-                <p><strong>Important:</strong> You've added an original painting to your cart!</p>
-                <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
-                  <p className="font-semibold text-amber-800 mb-2">⏱️ 15-Minute Time Limit</p>
-                  <p className="text-amber-700">
-                    Original paintings are reserved for you for only <strong>15 minutes</strong>. 
-                    If checkout is not completed in that time, the painting will be automatically 
-                    removed from your cart and made available to other customers.
-                  </p>
-                </div>
-                <p>
-                  This prevents items from being locked indefinitely and gives everyone 
-                  a fair chance to purchase one-of-a-kind artworks.
-                </p>
-                <p className="font-medium">
-                  A countdown timer is visible in your cart to help you keep track of the remaining time.
-                </p>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-3 mt-4">
-            <Button 
-              variant="secondary"
-              className="sm:w-auto w-full"
-              onClick={() => {
-                setShowTimeLimitDialog(false);
-                navigate("/shop");
-              }}
-            >
-              Continue Shopping
-            </Button>
-            <Button 
-              className="sm:w-auto w-full bg-amber-700 hover:bg-amber-800"
-              onClick={() => {
-                setShowTimeLimitDialog(false);
-                navigate("/checkout");
-              }}
-            >
-              Proceed to Checkout Now
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Image Zoom Modal */}
-      <Dialog open={imageZoomOpen} onOpenChange={setImageZoomOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-screen overflow-y-auto">
-          <div className="relative">
-            <Button 
-              className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-black/50 hover:bg-black/70"
-              variant="ghost"
-              size="icon"
-              onClick={() => setImageZoomOpen(false)}
-            >
-              <X className="h-5 w-5 text-white" />
-            </Button>
-            <img
-              src={product.imageUrl}
-              alt={product.title}
-              className="w-full h-auto object-contain max-h-[80vh]"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center space-x-4 mb-8">
-          <Button variant="outline" size="icon" onClick={() => navigate("/shop")}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-serif">Back to Shop</h1>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Product Image */}
-          <div className="relative group">
-            <img
-              src={product.imageUrl}
-              alt={product.title}
-              className="w-full h-auto rounded-md shadow-md cursor-pointer"
-              onClick={() => setImageZoomOpen(true)}
-            />
-            <Button 
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70"
-              variant="ghost"
-              size="icon"
-              onClick={() => setImageZoomOpen(true)}
-            >
-              <Maximize2 className="h-5 w-5 text-white" />
-            </Button>
 
-          </div>
-          
-          {/* Product Details */}
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-serif mb-4">{product.title}</h2>
-              <ExpandableText 
-                text={product.description || ""} 
-                maxLength={150}
-                className="text-neutral-700 mb-6"
+      <ArtworkLightbox
+        artworks={[{
+          id: product.id,
+          title,
+          description: product.description || "",
+          category: product.type,
+          year: "",
+          medium: kindLabel(product),
+          dimensions: size,
+          imageUrl: product.imageUrl,
+          status: inStock ? "available" : "sold",
+          altText: title,
+        }]}
+        index={viewerIndex}
+        onIndexChange={setViewerIndex}
+        showDetailsButton={false}
+      />
+
+      <div className="container mx-auto px-5 lg:px-12 py-8 md:py-14">
+        <Link href="/shop" className="inline-flex items-center gap-1 text-xs uppercase tracking-[0.14em] text-[#6e6a63] hover:text-[#1b1a18] transition-colors">
+          <ChevronLeft className="h-3.5 w-3.5" /> Shop
+        </Link>
+
+        <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-16 items-start">
+          {/* Artwork */}
+          <div className="md:col-span-7">
+            <button
+              type="button"
+              onClick={() => setViewerIndex(0)}
+              className="group block w-full bg-[#efede8] p-[6%] cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e]"
+              aria-label={`View ${title} full screen`}
+            >
+              <img
+                src={thumbUrl(product.imageUrl, 1400)}
+                alt={title}
+                className="mx-auto max-h-[75vh] w-auto max-w-full object-contain shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
+                {...({ fetchpriority: "high" } as Record<string, string>)}
               />
-              <div className="text-2xl font-medium mb-8">
-                {formatCurrency(selectedVariant ? selectedVariant.price : product.price)}
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewerIndex(0)}
+              className="mt-3 text-xs uppercase tracking-[0.14em] text-[#6e6a63] hover:text-[#1b1a18] transition-colors"
+            >
+              View full screen
+            </button>
+          </div>
+
+          {/* Details */}
+          <div className="md:col-span-5 md:sticky md:top-28">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#6e6a63]">{kindLabel(product)}</p>
+            <h1 className="mt-2 font-serif text-4xl lg:text-5xl leading-tight text-[#1b1a18]">{title}</h1>
+            {size && <p className="mt-3 text-sm text-[#6e6a63]">{size}</p>}
+            <p className="mt-6 text-2xl text-[#1b1a18] tabular-nums">
+              {formatCurrency(selectedVariant ? selectedVariant.price : product.price)}
+            </p>
+
+            {/* Size choice for prints with several sizes */}
+            {product.variants && product.variants.length > 1 && (
+              <div className="mt-6">
+                <label className="block text-xs uppercase tracking-[0.14em] text-[#6e6a63] mb-2">Size</label>
+                <Select
+                  value={selectedVariant?.id.toString() || ""}
+                  onValueChange={(value) => {
+                    const variant = product.variants?.find((v) => v.id.toString() === value);
+                    setSelectedVariant(variant || null);
+                  }}
+                >
+                  <SelectTrigger className="w-full rounded-none bg-white">
+                    <SelectValue placeholder="Select a size">
+                      {selectedVariant && extractDimensions(selectedVariant.variant_name)}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {product.variants.map((variant) => (
+                      <SelectItem key={variant.id} value={variant.id.toString()}>
+                        <div className="flex justify-between items-center w-full">
+                          <span>{extractDimensions(variant.variant_name)}</span>
+                          <span className="ml-4 text-sm text-[#6e6a63]">{formatCurrency(variant.price)}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              
-              {/* Size Selection/Display */}
-              {product.variants && product.variants.length > 1 && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Size:</label>
-                  <Select
-                    value={selectedVariant?.id.toString() || ""}
-                    onValueChange={(value) => {
-                      const variant = product.variants?.find(v => v.id.toString() === value);
-                      setSelectedVariant(variant || null);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a size">
-                        {selectedVariant && extractDimensions(selectedVariant.variant_name)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {product.variants.map((variant) => (
-                        <SelectItem key={variant.id} value={variant.id.toString()}>
-                          <div className="flex justify-between items-center w-full">
-                            <span>{extractDimensions(variant.variant_name)}</span>
-                            <span className="ml-4 text-sm text-gray-600">
-                              {formatCurrency(variant.price)}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {/* Size Display for Single Variant or Prints */}
-              {((product.variants && product.variants.length === 1) || 
-                (product.type === 'prints' && (!product.variants || product.variants.length === 0))) && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Size:</label>
-                  <div className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900">
-                    {product.variants && product.variants.length === 1 
-                      ? extractDimensions(product.variants[0].variant_name)
-                      : product.height && product.width 
-                        ? `${product.height}" × ${product.width}"`
-                        : extractDimensionsFromDescription(product.description || '') || "Standard Size"
-                    }
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {product.stock > 0 ? (
-              <div className="space-y-6">
-                {/* Quantity Selector - Only show for prints and merchandise */}
-                {product.type !== 'originals' ? (
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm font-medium">Quantity:</span>
-                    <div className="flex items-center border border-neutral-300 rounded">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10"
-                        onClick={decreaseQuantity}
-                        disabled={quantity <= 1}
-                      >
+            )}
+
+            {inStock ? (
+              <div className="mt-8 space-y-4">
+                {!isOriginal && (
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs uppercase tracking-[0.14em] text-[#6e6a63]">Quantity</span>
+                    <div className="flex items-center border border-[#e3e0da] bg-white">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" onClick={decreaseQuantity} disabled={quantity <= 1} aria-label="Fewer">
                         <Minus className="h-4 w-4" />
                       </Button>
-                      <span className="w-12 text-center">{quantity}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10"
-                        onClick={increaseQuantity}
-                        disabled={quantity >= product.stock}
-                      >
+                      <span className="w-10 text-center tabular-nums">{quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" onClick={increaseQuantity} disabled={quantity >= product.stock} aria-label="More">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Original Artwork Badge - Only shown for original paintings */}
-                    <div className="text-sm font-medium text-emerald-700">
-                      Original Artwork (One of a Kind)
-                    </div>
-                    
-                    {/* Size Information for Original Artwork */}
-                    {product.height && product.width && (
-                      <div className="text-sm">
-                        <span className="font-medium">Size: </span>
-                        <span>{product.width}" × {product.height}"</span>
-                      </div>
-                    )}
-                    
-                    {/* Time Limit Warning Box - Only for original artwork */}
-                    <div className="bg-amber-50 border-2 border-amber-500 p-4 rounded-md mt-4">
-                      <div className="flex items-center gap-2 text-amber-800 font-bold">
-                        <Clock className="h-5 w-5 animate-pulse" />
-                        <span className="text-lg">15-MINUTE TIME LIMIT!</span>
-                      </div>
-                      <p className="mt-2 text-amber-700">
-                        Original paintings have a <b>15-minute purchase window</b> once added to cart. 
-                        After this time, the painting will be automatically removed from your cart and made 
-                        available to other customers.
-                      </p>
-                    </div>
-                  </div>
                 )}
-                
-                {/* Add to Cart Button */}
-                <Button
+                <button
+                  type="button"
                   onClick={handleAddToCart}
-                  className="w-full h-12 bg-[#b8860b] hover:bg-opacity-90 text-white py-3 text-sm uppercase tracking-wide transition duration-200"
+                  className="w-full h-12 bg-[#1b1a18] hover:bg-black text-white text-xs uppercase tracking-[0.16em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e] focus-visible:ring-offset-2"
+                  data-testid="add-to-cart"
                 >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
-                  Add to Cart
-                </Button>
+                  Add to cart
+                </button>
+                {justAdded && (
+                  <p className="text-sm text-[#1b1a18]" role="status">
+                    Added to your cart.{" "}
+                    <Link href="/checkout" className="border-b border-[#8b6b3e] hover:text-[#8b6b3e]">Go to checkout</Link>
+                  </p>
+                )}
+                {isOriginal && (
+                  <p className="text-xs leading-relaxed text-[#6e6a63]">
+                    One of a kind. Once added, it is held in your cart for 15 minutes.
+                  </p>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="text-red-600 font-medium">
-                  This product is currently out of stock.
-                </div>
-                <Button
-                  disabled
-                  className="w-full h-12 bg-neutral-200 text-neutral-600 py-3 text-sm uppercase tracking-wide"
-                >
-                  Sold Out
-                </Button>
+              <p className="mt-8 text-sm text-[#6e6a63]">{isOriginal ? "This piece has sold." : "Currently sold out."}</p>
+            )}
+
+            {product.description && (
+              <div className="mt-10 pt-8 border-t border-[#e3e0da]">
+                <p className="text-[15px] leading-relaxed text-[#3d3a35] whitespace-pre-line">{product.description}</p>
               </div>
             )}
-            
-            {/* Product Category Label */}
-            <div className="py-4 border-t border-neutral-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-600">Category:</span>
-                <span className="text-sm font-medium">
-                  {product.type === 'Original Paintings' ? 'Original Artwork (One of a Kind)' : 
-                   product.type === 'Canvas Prints' ? 'Canvas Print' :
-                   product.type === 'Prints' ? 'Art Print' :
-                   product.type === 'Digital Downloads' ? 'Digital Download' :
-                   product.type}
-                </span>
-              </div>
+
+            <div className="mt-8 pt-6 border-t border-[#e3e0da] flex flex-col gap-3 text-sm">
+              <Link href={`/contact?artwork=${encodeURIComponent(title)}`} className="text-[#1b1a18] hover:text-[#8b6b3e] transition-colors">
+                Questions about this piece? Get in touch &rarr;
+              </Link>
+              <Link href="/shipping-returns" className="text-[#6e6a63] hover:text-[#1b1a18] transition-colors">
+                Shipping &amp; returns
+              </Link>
             </div>
           </div>
         </div>

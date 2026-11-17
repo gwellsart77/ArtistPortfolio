@@ -12,7 +12,7 @@ export default function ShippingReturns() {
       <div className="container mx-auto px-6 lg:px-12">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-serif mb-4">Shipping & Returns Policy</h1>
-          <div className="w-24 h-px bg-[#b8860b] mx-auto mb-6"></div>
+          <div className="w-24 h-px bg-[#8b6b3e] mx-auto mb-6"></div>
           <p className="text-neutral-700 max-w-2xl mx-auto">
             Our commitment to customer satisfaction extends to our shipping and return policies
           </p>
@@ -128,7 +128,7 @@ export default function ShippingReturns() {
               <Link 
                 href="/contact" 
                 className={buttonVariants({
-                  className: "bg-[#b8860b] hover:bg-opacity-90 text-white px-6 py-2"
+                  className: "bg-[#1b1a18] hover:bg-black text-white px-6 py-2"
                 })}
               >
                 Contact Us

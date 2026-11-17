@@ -79,15 +79,15 @@ export function ArtRecommendations({
   if (items.length === 0) return null;
 
   return (
-    <section className={`space-y-8 ${className}`} aria-labelledby="featured-artwork-heading">
+    <section className={`space-y-10 ${className}`} aria-labelledby="featured-artwork-heading">
       <div className="text-center">
-        <h2 id="featured-artwork-heading" className="text-3xl font-serif text-neutral-800 tracking-wide">{title}</h2>
-        <div className="w-24 h-px bg-[#b8860b] mx-auto mt-4" />
+        <h2 id="featured-artwork-heading" className="font-serif text-4xl md:text-5xl text-[#1b1a18]">{title}</h2>
+        <div className="w-16 h-px bg-[#8b6b3e] mx-auto mt-5" />
       </div>
 
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
+      <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 md:gap-6">
         {items.map((artwork, i) => (
-          <div key={artwork.id} className="break-inside-avoid mb-4">
+          <div key={artwork.id} className="break-inside-avoid mb-5 md:mb-6">
             <ArtworkCard
               artwork={artwork as unknown as SchemaArtwork}
               onOpen={() => {
@@ -102,9 +102,9 @@ export function ArtRecommendations({
       <div className="text-center">
         <Link
           href="/gallery"
-          className="inline-block text-xs tracking-widest uppercase text-neutral-700 hover:text-neutral-900 border-b-2 border-[#b8860b] pb-1.5 transition-colors"
+          className="inline-block text-xs tracking-[0.14em] uppercase text-[#1b1a18] hover:text-[#8b6b3e] border-b border-[#8b6b3e] pb-1.5 transition-colors"
         >
-          Explore More Art
+          View the full gallery
         </Link>
       </div>
 

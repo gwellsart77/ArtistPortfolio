@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/seo";
+import { thumbUrl } from "@/lib/cloudinary";
 import { PersonStructuredData } from "@/components/structured-data";
 
 export default function About() {
@@ -48,44 +49,17 @@ export default function About() {
   // Note: isLoading variable available but currently unused
 
   // Default content if settings not available yet
-  const defaultBio = `Gabe Wells is a contemporary oil painter based in Denver,
-    Colorado. With over 15 years of experience, he has developed a
-    distinctive style that bridges the gap between traditional
-    landscapes and contemporary abstraction.
-    
-    His work explores the emotional connection between humans and
-    their environment, using color and texture to evoke memories and
-    feelings rather than simply depicting scenes.
-    
-    Gabe holds an MFA from the Rhode Island School of Design and has
-    exhibited his work in galleries across North America and Europe.
-    His paintings are held in numerous private and public collections.`;
+  // No placeholder text: only Gabe's real content (from site settings) is ever shown
+  const defaultBio = ``;
 
-  const defaultStudio = `Located in Denver, Colorado, Gabe's
-    studio is a converted industrial space filled with natural
-    light. This is where all his works come to life, from initial
-    sketches to completed canvases.
-    
-    The studio is also where Gabe hosts occasional workshops and
-    open studio events, allowing visitors to see his process and
-    learn about oil painting techniques.
-    
-    Studio visits are available by appointment for collectors and
-    art enthusiasts.`;
+  // No placeholder text: only Gabe's real content (from site settings) is ever shown
+  const defaultStudio = ``;
 
-  const defaultCV = `2023 - Solo Exhibition, "Landscapes of Memory," Portland Art Gallery
-    2021 - Artist Residency, Vermont Studio Center
-    2020 - Group Exhibition, "Contemporary Landscapes," Seattle Art Museum
-    2018 - Featured Artist, American Oil Painters Society
-    2016 - MFA, Rhode Island School of Design`;
+  // No placeholder text: only Gabe's real content (from site settings) is ever shown
+  const defaultCV = ``;
     
-  const defaultStatement = `My artwork explores the intersection of memory, emotion, and place. I am fascinated by how landscapes can serve as containers for human experience, holding our stories and reflecting our inner worlds.
-    
-    Through my oil paintings, I seek to create spaces that exist somewhere between reality and imagination. The landscapes I paint are not direct representations of physical places, but rather emotional environments that invite viewers to project their own memories and feelings.
-    
-    Color plays a crucial role in my process. I use vibrant, sometimes unexpected palettes to evoke particular emotional responses and to challenge conventional ways of seeing. The texture of paint—its physicality and presence—is equally important, reminding us that these images are not just visual experiences but material objects that exist in space.
-    
-    Ultimately, my work is an invitation to slow down, to contemplate, and to reconnect with both the natural world and our own interior landscapes.`;
+  // No placeholder text: only Gabe's real content (from site settings) is ever shown
+  const defaultStatement = ``;
 
   // Format paragraphs for display
   const formatParagraphs = (text: string) => {
@@ -115,27 +89,27 @@ export default function About() {
   const shouldRenderCVAsHTML = cvContent?.value && cvContent.value.includes('<') && cvContent.value.includes('>');
   
   return (
-    <section className="min-h-screen bg-[#f5f3ef]">
+    <section className="min-h-screen bg-[#f7f6f3]">
       <SEO
         title="About Gabe Wells | Contemporary Fine Artist"
         description="Discover the artistic vision of Gabe Wells, a contemporary painter specializing in magical realism oil paintings and fine art."
         canonicalUrl="https://gabewells.com/about"
-        ogImage={profileImage?.value || "https://images.unsplash.com/photo-1515169067868-5387ec356754?ixlib=rb-4.0.3&auto=format&fit=crop&w=700&h=900"}
+        ogImage={profileImage?.value || "https://res.cloudinary.com/da3hhngye/image/upload/v1747259587/Lumious_m0wilx.jpg"}
       />
       <PersonStructuredData
         name="Gabe Wells"
         jobTitle="Contemporary Oil Painter"
         description="Gabe Wells is a contemporary oil painter based in Denver, Colorado, known for vibrant landscapes that bridge traditional and abstract styles."
-        image={profileImage?.value || "https://images.unsplash.com/photo-1515169067868-5387ec356754?ixlib=rb-4.0.3&auto=format&fit=crop&w=700&h=900"}
+        image={profileImage?.value || "https://res.cloudinary.com/da3hhngye/image/upload/v1747259587/Lumious_m0wilx.jpg"}
         sameAs={[
           "https://instagram.com/gabewellsart"
         ]}
       />
-      <div className="container mx-auto px-6 lg:px-12">
-        <div className="pt-8 pb-4">
-          <h1 className="text-2xl font-serif text-neutral-800 tracking-wide">About</h1>
-          <p className="text-sm text-neutral-500 mt-1">Contemporary fine artist — imaginative realism, sculpture, and mixed media</p>
-          <div className="w-full h-px bg-neutral-200 mt-4"></div>
+      <div className="container mx-auto px-5 lg:px-12 max-w-3xl pb-20">
+        <div className="pt-12 md:pt-16 pb-10 text-center">
+          <h1 className="font-serif text-4xl md:text-5xl text-[#1b1a18]">About</h1>
+          <div className="w-16 h-px bg-[#8b6b3e] mx-auto mt-5 mb-5"></div>
+          <p className="text-sm text-[#6e6a63]">Contemporary fine artist — imaginative realism, sculpture, and mixed media</p>
         </div>
 
         <div className="mb-8">
@@ -143,16 +117,16 @@ export default function About() {
             {imageLoading ? (
               <Skeleton className="w-full h-[300px] rounded-lg" />
             ) : (
-              <img
-                src={profileImage?.value || "https://images.unsplash.com/photo-1515169067868-5387ec356754?ixlib=rb-4.0.3&auto=format&fit=crop&w=700&h=900"}
+              profileImage?.value && <img
+                src={thumbUrl(profileImage.value, 1200)}
                 alt="Gabe Wells in his studio"
-                className="w-full h-auto rounded-lg shadow-lg"
+                className="w-full h-auto rounded-sm"
               />
             )}
           </div>
           
-          <h3 className="text-2xl font-serif mb-3 text-center">Artist Statement</h3>
-          <div className="w-16 h-px bg-[#b8860b] mx-auto mb-3"></div>
+          <h2 className="text-3xl font-serif mb-3 text-center">Artist Statement</h2>
+          <div className="w-16 h-px bg-[#8b6b3e] mx-auto mb-3"></div>
           
           {statementLoading ? (
             <div className="max-w-3xl mx-auto">
@@ -166,7 +140,7 @@ export default function About() {
           ) : (
             <div className="max-w-3xl mx-auto">
               {statementParagraphs.map((paragraph, index) => (
-                <p key={index} className="mb-4 text-neutral-700 leading-relaxed italic text-center">
+                <p key={index} className="mb-4 font-serif text-xl leading-relaxed italic text-center text-[#3d3a35]">
                   {paragraph}
                 </p>
               ))}
@@ -174,9 +148,9 @@ export default function About() {
           )}
         </div>
         
-        <div className="mt-8">
-          <h3 className="text-2xl font-serif mb-3">Gabe Wells</h3>
-          <div className="w-16 h-px bg-[#b8860b] mb-3"></div>
+        <div className="mt-16">
+          <h2 className="text-3xl font-serif mb-3">Gabe Wells</h2>
+          <div className="w-16 h-px bg-[#8b6b3e] mb-3"></div>
           
           {bioLoading ? (
             <>
@@ -191,15 +165,15 @@ export default function About() {
           ) : (
             <>
               {bioParagraphs.map((paragraph, index) => (
-                <p key={index} className={`mb-${index === bioParagraphs.length - 1 ? '6' : '4'} text-neutral-700 leading-relaxed`}>
+                <p key={index} className={`mb-${index === bioParagraphs.length - 1 ? '6' : '4'} text-[15px] text-[#3d3a35] leading-[1.8]`}>
                   {paragraph}
                 </p>
               ))}
             </>
           )}
 
-          <div className="border-t border-neutral pt-4 mt-4">
-            <h4 className="text-xl font-serif mb-3">CV Highlights</h4>
+          <div className="border-t border-[#e3e0da] pt-10 mt-12">
+            <h2 className="text-3xl font-serif mb-6">CV Highlights</h2>
             {cvLoading ? (
               <>
                 <Skeleton className="h-4 w-full mb-3" />
@@ -212,14 +186,14 @@ export default function About() {
               <>
                 {shouldRenderCVAsHTML ? (
                   <div 
-                    className="prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:ml-6 [&_li]:mb-2 [&_strong]:font-semibold [&_strong]:text-[#b8860b]"
+                    className="prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:ml-6 [&_li]:mb-2 [&_strong]:font-semibold [&_strong]:text-[#8b6b3e]"
                     dangerouslySetInnerHTML={{ __html: cvContent?.value || '' }}
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     {cvItems && cvItems.map((item, index) => (
                       <div key={index} className="mb-2">
-                        <div className="font-medium text-[#b8860b]">{item.year}</div>
+                        <div className="font-medium text-[#8b6b3e]">{item.year}</div>
                         <div className="text-neutral-800">{item.description}</div>
                       </div>
                     ))}
@@ -233,8 +207,8 @@ export default function About() {
         </div>
 
         {/* Studio Section - conditionally displayed based on toggle */}
-        {studioVisitData?.value === "true" && (
-          <Card className="mt-20 bg-white rounded-lg border-none shadow-sm">
+        {studioVisitData?.value === "true" && !!studioContent?.value && (
+          <Card className="mt-20 bg-white rounded-none border border-[#e3e0da] shadow-none">
             <CardContent className="p-8 md:p-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="order-2 lg:order-1">
@@ -251,7 +225,7 @@ export default function About() {
                   ) : (
                     <>
                       {studioParagraphs.map((paragraph, index) => (
-                        <p key={index} className={`mb-${index === studioParagraphs.length - 1 ? '0' : '4'} text-neutral-700 leading-relaxed`}>
+                        <p key={index} className={`mb-${index === studioParagraphs.length - 1 ? '0' : '4'} text-[15px] text-[#3d3a35] leading-[1.8]`}>
                           {paragraph}
                         </p>
                       ))}
@@ -261,7 +235,7 @@ export default function About() {
                   <Link
                     href="/contact"
                     className={buttonVariants({
-                      className: "mt-6 bg-[#b8860b] hover:bg-opacity-90 text-white px-6 py-3 uppercase tracking-wider text-sm",
+                      className: "mt-6 bg-[#1b1a18] hover:bg-black text-white px-6 py-3 uppercase tracking-wider text-sm",
                     })}
                   >
                     Book a Studio Visit
@@ -272,10 +246,11 @@ export default function About() {
                   {studioImageLoading ? (
                     <Skeleton className="w-full h-[300px] rounded-lg" />
                   ) : (
-                    <img
-                      src={studioImage?.value || "https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=700&h=500"}
-                      alt="Gabe Wells' art studio in Portland"
-                      className="w-full h-auto rounded-lg shadow-lg"
+                    studioImage?.value && <img
+                      src={thumbUrl(studioImage.value, 1000)}
+                      alt="Gabe Wells' art studio"
+                      loading="lazy"
+                      className="w-full h-auto rounded-sm"
                     />
                   )}
                 </div>

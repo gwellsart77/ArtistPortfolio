@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { queryClient } from '@/lib/queryClient';
 
 interface CacheInvalidationMessage {
@@ -15,9 +16,16 @@ interface CacheInvalidationMessage {
  * and automatically invalidate the appropriate query cache
  */
 export function useCacheInvalidation() {
+  // Live updates only matter while Gabe is editing in the admin area.
+  // Public visitors never open this connection (it used to retry every 3 s forever).
+  const [location] = useLocation();
+  const isAdmin = location.startsWith('/admin');
+
   useEffect(() => {
-    // Only set up WebSocket in browser environment
-    if (typeof window === 'undefined') return;
+    // Only set up WebSocket in browser environment, and only in the admin area
+    if (typeof window === 'undefined' || !isAdmin) return;
+    let attempts = 0;
+    let stopped = false;
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -30,6 +38,7 @@ export function useCacheInvalidation() {
         ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
+          attempts = 0;
           // Debug level logging only
           if (import.meta.env.DEV) {
             console.debug('Cache invalidation WebSocket connected');
@@ -69,7 +78,10 @@ export function useCacheInvalidation() {
           if (import.meta.env.DEV) {
             console.debug('Cache invalidation WebSocket disconnected, attempting to reconnect...');
           }
-          reconnectTimer = setTimeout(connect, 3000);
+          if (stopped) return;
+          attempts += 1;
+          // Back off: 3 s, 6 s, 12 s ... up to 60 s; give up after 8 tries
+          if (attempts <= 8) reconnectTimer = setTimeout(connect, Math.min(3000 * 2 ** (attempts - 1), 60000));
         };
         
         ws.onerror = (error) => {
@@ -91,10 +103,11 @@ export function useCacheInvalidation() {
     connect();
     
     return () => {
+      stopped = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       if (ws) {
         ws.close();
       }
     };
-  }, []);
+  }, [isAdmin]);
 }

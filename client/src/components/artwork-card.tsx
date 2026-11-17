@@ -22,7 +22,7 @@ export default function ArtworkCard({ artwork, onOpen, eager = false }: ArtworkC
     <button
       type="button"
       onClick={onOpen}
-      className="gallery-item group relative block w-full overflow-hidden rounded-sm text-left cursor-zoom-in bg-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b8860b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f3ef]"
+      className="gallery-item group relative block w-full overflow-hidden rounded-sm text-left cursor-zoom-in bg-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f6f3]"
       aria-label={`View ${artwork.title} full screen`}
       data-testid={`artwork-card-${artwork.id}`}
     >
@@ -65,7 +65,7 @@ export default function ArtworkCard({ artwork, onOpen, eager = false }: ArtworkC
         </span>
         {artwork.status === "sold" && <span className="mt-2 text-[11px] uppercase tracking-widest text-red-300">Sold</span>}
         {artwork.status === "available" && (
-          <span className="mt-2 text-[11px] uppercase tracking-widest text-[#e8c46a]">Available</span>
+          <span className="mt-2 text-[11px] uppercase tracking-widest text-[#d8c3a0]">Available</span>
         )}
       </div>
     </button>

@@ -27,7 +27,7 @@ export default function Footer() {
                   href={instagramLink.value} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-[#b8860b] transition"
+                  className="text-gray-600 hover:text-[#8b6b3e] transition"
                   aria-label="Instagram"
                 >
                   <FaInstagram size={22} />
@@ -39,19 +39,19 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-serif mb-4">Navigation</h3>
             <nav className="flex flex-col space-y-2">
-              <Link href="/" className="text-gray-600 hover:text-[#b8860b] transition">
+              <Link href="/" className="text-gray-600 hover:text-[#8b6b3e] transition">
                 Home
               </Link>
-              <Link href="/gallery" className="text-gray-600 hover:text-[#b8860b] transition">
+              <Link href="/gallery" className="text-gray-600 hover:text-[#8b6b3e] transition">
                 Gallery
               </Link>
-              <Link href="/shop" className="text-gray-600 hover:text-[#b8860b] transition">
+              <Link href="/shop" className="text-gray-600 hover:text-[#8b6b3e] transition">
                 Shop
               </Link>
-              <Link href="/about" className="text-gray-600 hover:text-[#b8860b] transition">
+              <Link href="/about" className="text-gray-600 hover:text-[#8b6b3e] transition">
                 About
               </Link>
-              <Link href="/contact" className="text-gray-600 hover:text-[#b8860b] transition">
+              <Link href="/contact" className="text-gray-600 hover:text-[#8b6b3e] transition">
                 Contact
               </Link>
             </nav>
@@ -64,7 +64,7 @@ export default function Footer() {
             </p>
             <Link 
               href="/contact" 
-              className="inline-block border-b border-[#b8860b] text-gray-600 hover:text-[#b8860b] transition mt-2"
+              className="inline-block border-b border-[#8b6b3e] text-gray-600 hover:text-[#8b6b3e] transition mt-2"
             >
               Contact Form
             </Link>

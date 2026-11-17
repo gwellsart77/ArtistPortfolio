@@ -53,7 +53,7 @@ export default function SecurityPolicy() {
           <h2>Contact Us</h2>
           <p>
             If you have any questions or concerns about our security practices, please don't hesitate to 
-            <a href="/contact" className="text-primary hover:text-[#b8860b] transition ml-1">contact us</a>.
+            <a href="/contact" className="text-primary hover:text-[#8b6b3e] transition ml-1">contact us</a>.
           </p>
         </div>
       </div>

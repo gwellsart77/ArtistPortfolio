@@ -133,19 +133,19 @@ export default function Gallery() {
   }
 
   return (
-    <section className="min-h-screen bg-[#f5f3ef]">
+    <section className="min-h-screen bg-[#f7f6f3]">
       <SEO
         title="Gallery of Original Oil Paintings | Gabe Wells Fine Art"
-        description="Browse Gabe Wells' complete gallery of original oil paintings and acrylic artworks. Contemporary magical imaginary realism fine art."
+        description="The gallery of Gabe Wells: original oil paintings, sculpture and murals in imaginative realism, from a Denver-based artist."
         canonicalUrl="https://gabewells.com/gallery"
       />
       {renderArtworkStructuredData()}
 
       {/* Centered page header */}
-      <div className="container mx-auto px-6 lg:px-12 pt-12 pb-8 text-center">
-        <h1 className="text-4xl font-serif text-neutral-800 tracking-wide mb-4">Selected Works</h1>
-        <div className="w-24 h-px bg-[#b8860b] mx-auto mb-6"></div>
-        <p className="text-sm text-neutral-500 max-w-xl mx-auto mb-8 leading-relaxed">
+      <div className="container mx-auto px-5 lg:px-12 pt-12 md:pt-16 pb-10 text-center">
+        <h1 className="font-serif text-4xl md:text-5xl text-[#1b1a18]">Selected Works</h1>
+        <div className="w-16 h-px bg-[#8b6b3e] mx-auto mt-5 mb-5"></div>
+        <p className="text-sm text-[#6e6a63] max-w-xl mx-auto mb-8 leading-relaxed">
           {galleryDescription?.value || "Original works — oil on canvas, acrylic, and mixed media"}
         </p>
 
@@ -162,10 +162,10 @@ export default function Gallery() {
                 key={category}
                 onClick={() => { setActiveCategory(category); setLightboxIndex(null); }}
                 aria-pressed={isActive}
-                className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
+                className={`text-xs tracking-[0.14em] uppercase transition-colors pb-1.5 border-b whitespace-nowrap ${
                   isActive
-                    ? "text-neutral-800 border-[#b8860b] font-medium"
-                    : "text-neutral-400 border-transparent hover:text-neutral-600"
+                    ? "text-[#1b1a18] border-[#8b6b3e]"
+                    : "text-[#6e6a63] border-transparent hover:text-[#1b1a18]"
                 }`}
               >
                 {displayName}
@@ -176,11 +176,11 @@ export default function Gallery() {
       </div>
 
       {/* Gallery Grid */}
-      <div className="container mx-auto px-6 lg:px-12 pb-16">
+      <div className="container mx-auto px-5 lg:px-12 pb-20">
         <div className={
           layoutPreference === "masonry"
-            ? "columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4"
-            : "columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4"
+            ? "columns-1 sm:columns-2 lg:columns-3 gap-5 md:gap-6"
+            : "columns-1 sm:columns-2 lg:columns-3 gap-5 md:gap-6"
         }>
           {isLoading
             ? Array(9)
@@ -195,7 +195,7 @@ export default function Gallery() {
                 ))
             : filteredArtworks && filteredArtworks.length > 0 ? (
                 filteredArtworks.map((artwork, i) => (
-                  <div key={artwork.id} className="break-inside-avoid mb-4">
+                  <div key={artwork.id} className="break-inside-avoid mb-5 md:mb-6">
                     <ArtworkCard artwork={artwork} eager={i < 3} onOpen={() => setLightboxIndex(i)} />
                   </div>
                 ))

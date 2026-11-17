@@ -57,7 +57,7 @@ export default function NewsletterSignup() {
                   {...field}
                   type="email"
                   placeholder="Your Email"
-                  className="px-4 py-3 bg-white bg-opacity-10 border border-neutral-700 rounded-sm rounded-r-none focus:border-[#b8860b] text-white"
+                  className="px-4 py-3 bg-white bg-opacity-10 border border-neutral-700 rounded-sm rounded-r-none focus:border-[#8b6b3e] text-white"
                   required
                 />
               </FormControl>
@@ -67,7 +67,7 @@ export default function NewsletterSignup() {
         />
         <Button
           type="submit"
-          className="bg-[#b8860b] px-4 py-3 text-white uppercase tracking-wider text-sm rounded-sm rounded-l-none hover:bg-opacity-90 transition duration-200"
+          className="bg-[#1b1a18] px-4 py-3 text-white uppercase tracking-wider text-sm rounded-sm rounded-l-none hover:bg-black transition duration-200"
           disabled={newsletterMutation.isPending}
         >
           {newsletterMutation.isPending ? "Subscribing..." : "Subscribe"}

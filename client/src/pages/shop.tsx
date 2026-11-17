@@ -181,150 +181,111 @@ export default function Shop() {
     ));
   };
 
+  // Only offer tabs that actually have something in them
+  const typeHasProducts = (t: ProductType) => !!products?.some((p) => p.type === t);
+  const availableTypes = (["originals", "prints", "merchandise"] as ProductType[]).filter(typeHasProducts);
+  const subtypeHasProducts = (t: ProductType, sub: string) => !!products?.some((p) => p.type === t && p.subtype === sub);
+  const originalSubtypes = ((originalTypes as any[]) || [])
+    .map((o) => ({ key: String(o.name).toLowerCase(), label: String(o.name) }))
+    .filter((o) => subtypeHasProducts("originals", o.key));
+  const printSubtypes = (["paper", "canvas", "framed", "limited_edition"] as PrintSubtype[])
+    .map((k) => ({ key: k, label: k === "paper" ? "Paper Prints" : k === "canvas" ? "Canvas Prints" : k === "framed" ? "Framed Prints" : "Limited Edition" }))
+    .filter((o) => subtypeHasProducts("prints", o.key));
+  const merchSubtypes = merchandiseCategories
+    .map((k: string) => ({ key: k, label: k.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") }))
+    .filter((o: { key: string }) => subtypeHasProducts("merchandise", o.key));
+
+  // If the chosen tab is empty but another has products, switch to one that has them
+  useEffect(() => {
+    if (products && availableTypes.length > 0 && !availableTypes.includes(activeType)) {
+      setActiveType(availableTypes[0] as ProductType);
+    }
+  }, [products]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (activeType === "originals" && originalSubtypes.length > 0 && !originalSubtypes.some((o) => o.key === activeOriginalSubtype)) {
+      setActiveOriginalSubtype(originalSubtypes[0]!.key);
+    }
+    if (activeType === "prints" && printSubtypes.length > 0 && !printSubtypes.some((o) => o.key === activePrintSubtype)) {
+      setActivePrintSubtype(printSubtypes[0]!.key as PrintSubtype);
+    }
+    if (activeType === "merchandise" && merchSubtypes.length > 0 && !merchSubtypes.some((o: { key: string }) => o.key === activeMerchandiseSubtype)) {
+      setActiveMerchandiseSubtype(merchSubtypes[0]!.key);
+    }
+  }, [products, originalTypes, activeType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const subtabs =
+    activeType === "originals" ? { items: originalSubtypes, active: activeOriginalSubtype, set: (k: string) => setActiveOriginalSubtype(k) } :
+    activeType === "prints" ? { items: printSubtypes, active: activePrintSubtype as string, set: (k: string) => setActivePrintSubtype(k as PrintSubtype) } :
+    { items: merchSubtypes, active: activeMerchandiseSubtype, set: (k: string) => setActiveMerchandiseSubtype(k) };
+
+  const tabClass = (active: boolean) =>
+    `text-xs tracking-[0.14em] uppercase pb-1.5 border-b whitespace-nowrap transition-colors ${
+      active ? "text-[#1b1a18] border-[#8b6b3e]" : "text-[#6e6a63] border-transparent hover:text-[#1b1a18]"
+    }`;
+
   return (
-    <section className="min-h-screen bg-[#f5f3ef]">
+    <section className="min-h-screen bg-[#f7f6f3]">
       <SEO
         title="Buy Original Paintings & Prints | Gabe Wells Shop"
-        description="Buy original paintings, prints, and merchandise from Gabe Wells Fine Art. Contemporary oil paintings and limited edition products."
+        description="Buy original paintings and prints by Gabe Wells. Imaginative realism oil paintings, available directly from the artist."
         canonicalUrl="https://gabewells.com/shop"
         ogType="website"
       />
       {renderProductStructuredData()}
 
-      {/* Page header with category filter pills */}
-      <div className="container mx-auto px-6 lg:px-12 pt-8 pb-4">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-serif text-neutral-800 tracking-wide">Shop</h1>
-            <p className="text-sm text-neutral-500 mt-1">
-              {shopDescriptionData?.value || "Original paintings, limited edition prints, and exclusive merchandise"}
-            </p>
-          </div>
+      {/* Page header */}
+      <div className="container mx-auto px-5 lg:px-12 pt-12 md:pt-16 pb-8 text-center">
+        <h1 className="font-serif text-4xl md:text-5xl text-[#1b1a18]">Shop</h1>
+        <div className="w-16 h-px bg-[#8b6b3e] mx-auto mt-5 mb-5" />
+        <p className="text-sm text-[#6e6a63] max-w-xl mx-auto leading-relaxed">
+          {shopDescriptionData?.value || "Original paintings and prints, available directly from the artist."}
+        </p>
 
-          {/* Main category pills */}
-          <div className="flex flex-wrap gap-2 md:justify-end">
-            {(["originals", "prints", "merchandise"] as ProductType[]).map((type) => {
-              const label = type === "originals" ? "Original Artwork" : type === "prints" ? "Prints" : "Merchandise";
-              return (
-                <button
-                  key={type}
-                  onClick={() => setActiveType(type)}
-                  className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
-                    activeType === type
-                      ? "text-neutral-800 border-[#b8860b] font-medium"
-                      : "text-neutral-400 border-transparent hover:text-neutral-600"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Thin divider */}
-        <div className="w-full h-px bg-neutral-200 mt-4"></div>
-
-        {/* Subcategory pills — shown below divider when applicable */}
-        {activeType === "prints" && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {(["paper", "canvas", "framed", "limited_edition"] as PrintSubtype[]).map((subtype) => {
-              const label = subtype === "paper" ? "Paper Prints" : subtype === "canvas" ? "Canvas Prints" : subtype === "framed" ? "Framed Prints" : "Limited Edition";
-              return (
-                <button
-                  key={subtype}
-                  onClick={() => setActivePrintSubtype(subtype)}
-                  className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
-                    activePrintSubtype === subtype
-                      ? "text-neutral-800 border-[#b8860b] font-medium"
-                      : "text-neutral-400 border-transparent hover:text-neutral-600"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {activeType === "originals" && originalTypes && (originalTypes as any[]).length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {(originalTypes as any[]).map((type) => (
-              <button
-                key={type.id}
-                onClick={() => setActiveOriginalSubtype(type.name.toLowerCase())}
-                className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
-                  activeOriginalSubtype === type.name.toLowerCase()
-                    ? "text-neutral-800 border-[#b8860b] font-medium"
-                    : "text-neutral-400 border-transparent hover:text-neutral-600"
-                }`}
-              >
-                {type.name}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {activeType === "merchandise" && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {merchandiseCategories.map((category: string) => (
-              <button
-                key={category}
-                onClick={() => setActiveMerchandiseSubtype(category)}
-                className={`text-xs tracking-widest uppercase transition-all duration-200 pb-1.5 border-b-2 whitespace-nowrap ${
-                  activeMerchandiseSubtype === category
-                    ? "text-neutral-800 border-[#b8860b] font-medium"
-                    : "text-neutral-400 border-transparent hover:text-neutral-600"
-                }`}
-              >
-                {category.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-              </button>
-            ))}
+        {(availableTypes.length > 1 || subtabs.items.length > 1) && (
+          <div className="mt-8 flex flex-col items-center gap-4">
+            {availableTypes.length > 1 && (
+              <div className="flex flex-wrap justify-center gap-7" role="tablist" aria-label="Shop sections">
+                {availableTypes.map((type) => (
+                  <button key={type} role="tab" aria-selected={activeType === type} onClick={() => setActiveType(type)} className={tabClass(activeType === type)}>
+                    {type === "originals" ? "Originals" : type === "prints" ? "Prints" : "Merchandise"}
+                  </button>
+                ))}
+              </div>
+            )}
+            {subtabs.items.length > 1 && (
+              <div className="flex flex-wrap justify-center gap-6" role="tablist" aria-label="Filter">
+                {subtabs.items.map((o: { key: string; label: string }) => (
+                  <button key={o.key} role="tab" aria-selected={subtabs.active === o.key} onClick={() => subtabs.set(o.key)} className={tabClass(subtabs.active === o.key)}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Products grid */}
-      <div className="container mx-auto px-6 lg:px-12 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="container mx-auto px-5 lg:px-12 pb-20">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-8 md:gap-y-14">
           {productsLoading
             ? Array(8)
                 .fill(0)
                 .map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col space-y-3 animate-pulse"
-                    style={{
-                      animationDelay: `${i * 100}ms`,
-                      animationDuration: '1s'
-                    }}
-                  >
-                    <Skeleton className="h-[300px] w-full rounded-sm" />
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-4 w-[150px]" />
-                    <Skeleton className="h-4 w-[100px]" />
+                  <div key={i} className="flex flex-col gap-3">
+                    <Skeleton className="aspect-[4/5] w-full rounded-none" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/3" />
                   </div>
                 ))
             : displayProducts?.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="animate-fade-in-up opacity-0"
-                  style={{
-                    animationDelay: `${index * 150}ms`,
-                    animationDuration: '600ms',
-                    animationFillMode: 'forwards'
-                  }}
-                >
-                  <ProductCard product={product} />
-                </div>
+                <ProductCard key={product.id} product={product} eager={index < 4} />
               ))}
         </div>
 
         {displayProducts?.length === 0 && !productsLoading && (
           <div className="text-center py-20">
-            <p className="text-neutral-400 text-sm tracking-wide uppercase">
-              No products found in this category
-            </p>
+            <p className="text-[#6e6a63] text-sm">Nothing in this section right now.</p>
           </div>
         )}
       </div>

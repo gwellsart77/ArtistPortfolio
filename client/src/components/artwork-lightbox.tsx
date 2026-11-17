@@ -25,6 +25,8 @@ interface ArtworkLightboxProps {
   /** Index of the open artwork, or null when closed. */
   index: number | null;
   onIndexChange: (index: number | null) => void;
+  /** Hide the Details button/panel (e.g. on the product page, where details are already shown). */
+  showDetailsButton?: boolean;
 }
 
 interface ProductData {
@@ -36,12 +38,18 @@ function ShopLink({ artwork }: { artwork: LightboxArtwork }) {
     queryKey: [`/api/products/artwork/${artwork.id}`],
   });
   if (isLoading) return null;
-  const href = products.length === 1 && products[0] ? `/shop/product/${products[0].id}` : `/shop?artwork=${artwork.id}`;
-  const label = products.length === 1 ? "View Product" : products.length > 1 ? "View Products" : "View in Shop";
+  // No shop listing yet: invite an inquiry instead of sending people to an empty shop page
+  const href =
+    products.length === 1 && products[0]
+      ? `/shop/product/${products[0].id}`
+      : products.length > 1
+        ? `/shop?artwork=${artwork.id}`
+        : `/contact?artwork=${encodeURIComponent(artwork.title)}`;
+  const label = products.length > 0 ? "View in shop" : "Inquire about this piece";
   return (
     <a
       href={href}
-      className="inline-block mt-4 px-5 py-2 text-xs tracking-widest uppercase bg-[#b8860b] text-white hover:bg-[#9a7209] transition-colors"
+      className="inline-block mt-6 px-5 py-2.5 text-xs tracking-widest uppercase bg-white text-[#1b1a18] hover:bg-[#d8c3a0] transition-colors"
       data-testid={`lightbox-shop-link-${artwork.id}`}
     >
       {label}
@@ -50,12 +58,12 @@ function ShopLink({ artwork }: { artwork: LightboxArtwork }) {
 }
 
 function statusLabel(status?: string | null) {
-  if (status === "available") return { text: "Available", cls: "text-[#e8c46a]" };
+  if (status === "available") return { text: "Available", cls: "text-[#d8c3a0]" };
   if (status === "sold") return { text: "Sold", cls: "text-red-300" };
   return { text: "Not for sale", cls: "text-white/60" };
 }
 
-export default function ArtworkLightbox({ artworks, index, onIndexChange }: ArtworkLightboxProps) {
+export default function ArtworkLightbox({ artworks, index, onIndexChange, showDetailsButton = true }: ArtworkLightboxProps) {
   const isOpen = index !== null && index >= 0 && index < artworks.length;
   const artwork = isOpen ? artworks[index as number] : null;
   const count = artworks.length;
@@ -181,7 +189,7 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange }: Artw
               {count > 1 ? `${(index as number) + 1} / ${count}` : ""}
             </span>
             <DialogPrimitive.Close
-              className="p-2 -mr-2 text-white/70 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b8860b] rounded-full"
+              className="p-2 -mr-2 text-white/70 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e] rounded-full"
               aria-label="Close full screen view"
               data-testid="lightbox-close"
             >
@@ -242,7 +250,7 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange }: Artw
                 <button
                   type="button"
                   onClick={() => go(-1)}
-                  className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 h-12 w-12 items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b8860b]"
+                  className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 h-12 w-12 items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e]"
                   aria-label="Previous painting"
                   data-testid="lightbox-prev"
                 >
@@ -251,7 +259,7 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange }: Artw
                 <button
                   type="button"
                   onClick={() => go(1)}
-                  className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 h-12 w-12 items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b8860b]"
+                  className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 h-12 w-12 items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e]"
                   aria-label="Next painting"
                   data-testid="lightbox-next"
                 >
@@ -265,20 +273,20 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange }: Artw
           <div className={`relative z-20 shrink-0 px-4 sm:px-6 pt-3 transition-[margin] duration-300 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center ${showDetails ? "sm:mr-[380px]" : ""}`}>
             <h2 className="font-serif italic text-base sm:text-lg leading-snug">{artwork.title}</h2>
             <p className="text-xs text-white/60 mt-0.5">{meta}</p>
-            <button
+            {showDetailsButton && <button
               type="button"
               onClick={() => setShowDetails((v) => !v)}
               aria-expanded={showDetails}
               aria-controls="lightbox-details"
-              className="mt-2 text-xs tracking-widest uppercase text-white/80 hover:text-white underline underline-offset-4 decoration-[#b8860b] decoration-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b8860b] rounded-sm px-1"
+              className="mt-2 text-xs tracking-widest uppercase text-white/80 hover:text-white underline underline-offset-4 decoration-[#8b6b3e] decoration-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b6b3e] rounded-sm px-1"
               data-testid="lightbox-details-toggle"
             >
               {showDetails ? "Hide details" : "Details"}
-            </button>
+            </button>}
           </div>
 
           {/* Details panel: bottom sheet on phones, side panel on larger screens */}
-          <div
+          {showDetailsButton && <div
             id="lightbox-details"
             role="region"
             aria-label={`Details for ${artwork.title}`}
@@ -305,7 +313,7 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange }: Artw
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="w-12 h-px bg-[#b8860b] my-5" />
+              <div className="w-12 h-px bg-[#8b6b3e] my-5" />
 
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 {artwork.dimensions && (
@@ -326,7 +334,7 @@ export default function ArtworkLightbox({ artworks, index, onIndexChange }: Artw
 
               {artwork.status === "available" && showDetails && <ShopLink artwork={artwork} />}
             </div>
-          </div>
+          </div>}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

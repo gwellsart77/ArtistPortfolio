@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { displayTitle } from "@/lib/product-display";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
@@ -681,42 +682,27 @@ export default function Checkout() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-5 lg:px-12 py-12 md:py-16">
       {items.length === 0 ? (
         <EmptyCartNotice />
       ) : (
         <>
-          <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-        
+          <h1 className="font-serif text-4xl md:text-5xl text-center mb-3">Checkout</h1>
+          <div className="w-16 h-px bg-[#8b6b3e] mx-auto mb-8"></div>
+
           {originalItems.length > 0 && (
-            <div className="bg-amber-50 border-2 border-amber-500 p-4 rounded-md mb-8">
-              <div className="flex items-center gap-2 text-amber-800 font-bold">
-                <Clock className="h-5 w-5 animate-pulse" />
-                <span className="text-lg uppercase">Time Limited Purchase!</span>
-              </div>
-              <p className="mt-2 text-amber-700">
-                Your cart contains original paintings with a <b>15-minute time limit</b>. Please complete your purchase 
-                before the timer expires or the paintings will be removed from your cart.
-              </p>
-              
-              <div className="mt-4 space-y-2">
-                {originalItems.map(item => {
-                  const timeRemaining = getTimeRemaining(item.id);
-                  return timeRemaining !== null ? (
-                    <div key={item.id} className="flex items-center justify-between bg-white px-4 py-2 rounded-md border border-amber-300">
-                      <div className="font-medium">{item.title}</div>
-                      <div className={`font-mono font-bold ${timeRemaining < 60 ? 'text-red-600' : 'text-amber-700'}`}>
-                        {timeRemaining < 60 
-                          ? <span className="animate-pulse">⚠️ {timeRemaining}s left!</span>
-                          : <span>{Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>}
-                      </div>
-                    </div>
-                  ) : null;
-                })}
-              </div>
+            <div className="max-w-md mx-auto mb-8 text-center text-sm text-[#6e6a63]" role="timer">
+              {originalItems.map(item => {
+                const timeRemaining = getTimeRemaining(item.id);
+                return timeRemaining !== null ? (
+                  <p key={item.id} className={timeRemaining < 120 ? 'text-[#8b3a2e]' : ''}>
+                    {displayTitle(item.title)} is held for you · {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')} left
+                  </p>
+                ) : null;
+              })}
             </div>
           )}
-          
+
           <div className="flex justify-center mb-8">
             <div className="steps-container flex items-center w-full max-w-md">
               <div className={cn(

@@ -16,7 +16,7 @@ export function AccessibilityEnhancer({ children }: AccessibilityEnhancerProps) 
       if (!document.querySelector('.skip-nav')) {
         const skipNav = document.createElement('a');
         skipNav.href = '#main-content';
-        skipNav.className = 'skip-nav absolute left-0 top-0 z-50 bg-blue-600 text-white px-4 py-2 transform -translate-y-full focus:translate-y-0 transition-transform duration-200';
+        skipNav.className = 'skip-nav absolute left-0 top-0 z-50 bg-[#1b1a18] text-white px-4 py-2 transform -translate-y-full focus:translate-y-0 transition-transform duration-200';
         skipNav.textContent = 'Skip to main content';
         skipNav.setAttribute('aria-label', 'Skip to main content');
         document.body.insertBefore(skipNav, document.body.firstChild);
