@@ -59,7 +59,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
   Found: 2026-11-16 · Why it matters: most photos are ~720 px tall, so full screen and zoom look soft · Owner: Gabe (photos, 2000-2500 px long edge) + Claude (upload)
 - [ ] [BUILD] **Admin polish: contact-form spam filter, remove old "Back to Dashboard" headers, price-per-sq-inch box saves on every keystroke, settings.tsx (3,900 lines) cleanup incl. unused "Website Colors"** — P3
   Found: 2026-11-16 by the admin review · Source: Claude · Owner: Sonnet chat
-- [ ] [BUILD] **Compact mobile header + per-painting share link from the viewer** — P3
+- [ ] [BUILD] **Compact mobile header + per-painting share link from the viewer + lazy-load shop/About images** — P3
   Found: 2026-11-16 · Why it matters: the phone header uses ~125 px before any art; `/artwork/:id/:slug` pages now exist to share · Owner: Sonnet chat
 - [ ] [IDEA] **Replit holds work GitHub lacks (podcast pages + flagship pricing)** — P3 [G]
   Found: 2026-11-16 · Why it matters: every deploy needs the backup/stash/deploy-branch path until it is pushed or dropped · Owner: Gabe decides when the podcast goes public
