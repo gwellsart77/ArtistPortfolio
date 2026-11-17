@@ -48,6 +48,11 @@ So `git reset --hard origin/main` is only safe when Replit has nothing GitHub la
       $G stash pop
 ```
 Deployed 2026-11-16 this way (live build from GitHub cb99451; Replit `main` = merge 0def635).
+Deployed 2026-11-17 three times this way (SEO work; live = GitHub 3b5113f; Replit `main` = merge 2f622b8).
+**Note (2026-11-17):** Replit's Publish auto-committed the uncommitted flagship-pricing work on Replit `main`
+as a "Published your App" commit (fd7a385). It is safe (also on `backup/replit-main-20261117c`) and was NOT
+published: the live build came from GitHub. `stash push` now says "No local changes", which is expected.
+Replit's `git` path changes: use `G=$(command -v git || ls /nix/store/*/bin/git | head -1)`.
 
 ### CRITICAL — never run this from Replit Shell
 
