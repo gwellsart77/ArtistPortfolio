@@ -26,15 +26,28 @@ There are **two separate git repositories** that must be kept in sync manually:
 
 ### Deploying changes (every time)
 
+**Replit can hold work that is not on GitHub** (as of 2026-11-16: podcast pages committed only on
+Replit `main`, plus uncommitted "flagship pricing" work). Gabe's standing rule for that work: never
+reset or pull in a way that drops it, and don't push or publish the podcast until he asks.
+So `git reset --hard origin/main` is only safe when Replit has nothing GitHub lacks. Check first.
+
 ```
-1. Edit files locally (with Claude Code or manually)
-2. git add + git commit + git push          # updates GitHub
-3. In Replit Shell:
-      git fetch origin
-      git reset --hard origin/main          # applies GitHub changes to Replit
-      npm run build                         # rebuilds the app
-4. Click Redeploy in Replit Deployments panel
+1. Edit files locally, commit, push to GitHub main.
+2. In Replit Shell (G=/nix/store/x5hwjkyng8385q1pqhz8wyqkq0izmhpi-replit-runtime-path/bin/git):
+      $G status --short; $G fetch origin; $G log --oneline origin/main..HEAD
+      # If both are empty → $G reset --hard origin/main is fine.
+      # If not → publish GitHub's version without the Replit-only work:
+      $G branch -f backup/replit-main-<date> HEAD
+      $G stash push -u -m wip-<date>
+      $G checkout -B deploy-<date> origin/main
+      npm run build
+3. Click Republish (top right) → Republish. Wait for "Your project was published".
+4. Put Replit back the way it was, with the new code merged in:
+      $G checkout main
+      $G merge --no-edit origin/main
+      $G stash pop
 ```
+Deployed 2026-11-16 this way (live build from GitHub cb99451; Replit `main` = merge 0def635).
 
 ### CRITICAL — never run this from Replit Shell
 
@@ -96,29 +109,25 @@ shared/
 
 ---
 
-## Design System
-
-### Typography
-- **Page headings:** 32px (`text-3xl`) — refined, gallery-appropriate
-- **Subheadings:** 14–16px (`text-sm/text-base`) with `leading-relaxed`
-- **Body text:** 14px (`text-sm`)
-- **Labels/buttons:** 12px (`text-xs`) with `tracking-widest uppercase`
+## Design System (public site, updated 2026-11-16)
 
 ### Colors
-- **Brand accent:** Gold `#b8860b` — active states, underlines, dividers
-- **Headings:** Black `#000000`
-- **Body:** `neutral-700+`
-- **UI inactive:** `neutral-400` → hover `neutral-600` → active `neutral-800`
+- **Paper** (page background): `#f7f6f3` · **Ink** (text, buttons): `#1b1a18` · **Stone** (muted text): `#6e6a63`
+- **Line** (hairlines): `#e3e0da` · **Mat** (behind artwork): `#efede8`
+- **Bronze accent** `#8b6b3e` — thin rules, active tab underline, link hover only. Never a big fill.
+- Tailwind names exist (`ink`, `paper`, `stone`, `line`, `bronze`) but pages mostly use the hex values.
+- `--primary` is ink, so shadcn default buttons are ink. The admin area still uses the old gold `#b8860b`.
 
-### Filter Button Pattern
-```tsx
-// Active
-className="border-b-2 border-[#b8860b] text-neutral-800 font-medium"
-// Inactive
-className="border-b-2 border-transparent text-neutral-400 hover:text-neutral-600"
-```
+### Typography
+- Headings: `font-serif` = Cormorant Garamond (weight 500). Page titles `text-4xl md:text-5xl`, centered, with a `w-16 h-px bg-[#8b6b3e]` rule.
+- Text/UI: `font-sans` = Inter. Labels/tabs `text-xs uppercase tracking-[0.14em]`.
 
----
+### Patterns
+- Tabs: active `text-[#1b1a18] border-b border-[#8b6b3e]`, inactive `text-[#6e6a63] border-transparent`.
+- Primary button: `bg-[#1b1a18] hover:bg-black text-white h-12 text-xs uppercase tracking-[0.16em]` (square corners).
+- Artwork viewer: `components/artwork-lightbox.tsx` (one click opens; Details panel). Images go through `lib/cloudinary.ts`.
+- Product titles are stored as `Original Painting: "X"`; show them with `displayTitle()` from `lib/product-display.ts`.
+- Never add placeholder bios, CVs or stock photos as fallbacks: only Gabe's real content.
 
 ## Admin Interface Notes
 
