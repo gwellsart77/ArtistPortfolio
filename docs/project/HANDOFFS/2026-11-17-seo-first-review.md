@@ -18,5 +18,5 @@ Read first: `docs/project/START_HERE.md`, `CLAUDE.md` (SEO + Deployment), `docs/
 
 ## Only Gabe can decide (batch into one questionnaire)
 - Shipping prices for originals (for structured data).
-- "Twighlight" vs "Twilight".
+- ~~"Twighlight" vs "Twilight"~~ answered 2026-11-17: renamed "Dwindling Lights", site updated (DECISIONS).
 - Go-ahead + sign-in for Google Business Profile.

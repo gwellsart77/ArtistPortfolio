@@ -16,10 +16,11 @@ Read first: `docs/project/START_HERE.md`, `CLAUDE.md` (Deployment, Known failure
 3. **Compact mobile header + share link:** art starts within ~80 px of the top at phone width; the viewer's Details panel links to the painting's `/artwork/:id/:slug` page. Done when: both work on a phone-width test and live.
 4. After each deploy: append to `docs/project/DECISIONS.md`, tick the backlog. End the chat with /project-knowledge-update.
 
-## Only Gabe can decide (batch into one questionnaire)
-- "Propaganda Madness": real size, 12x16 or 10x8?
-- "Twighlight" or "Twilight"? (also in the SEO handoff)
-- "It's Getting Hot In Here" on the site while it is in the Governor's Art Show: match the show price, keep the current price, or hide it until the show ends?
+## Gabe answered (2026-11-17, see DECISIONS)
+- "Propaganda Madness" = 10x8: done. "Twighlight" → "Dwindling Lights" everywhere: done.
+- "It's Getting Hot In Here": match $4,500 once his show entry is in. When he says it's in, set product 60 to 4500 in his signed-in admin and check the shop page.
+
+## Still only Gabe
 - Bigger artwork photos when he has time (2000-2500 px long edge).
 If Gabe already answered (check `docs/project/DECISIONS.md`), just make the edits in his signed-in admin.
 

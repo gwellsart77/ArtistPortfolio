@@ -39,3 +39,10 @@ Why: a lazy admin page with no Suspense crashed on a menu click (React error 426
 
 ## 2026-11-17 · One set of website docs: `docs/project/` in this repo
 Why: two chats closed out at the same time and each started a knowledge map (this repo, and Gabe's Mac + Project docs). This repo's set came first and every chat can reach it. The redesign chat's map, backlog items and handoff were merged in here; the other copies are now one-line pointers. Gabe's Mac `Artwork Marketing Manager/` keeps the whole-business view and points here. Who: Claude.
+
+## 2026-11-17 · Gabe's answers: painting size, a new title, show price
+Asked once in the close-out questionnaire. Who: Gabe.
+- "Propaganda Madness" is 10x8. Done: shop product now height 10, width 8 (was 12x16); artwork already said 10" x 8".
+- "Twighlight" is renamed **"Dwindling Lights"** everywhere (his words: "Update to: Dwindling Lights everywhere"). Done: artwork #11 and product #6 title, description, SEO description and alt text. The page is now `/artwork/11/dwindling-lights`; old links still open it (pages match by id). Left as is: the Cloudinary image file name (`Twighlight_web_...jpg`), which visitors don't see; renaming it means re-uploading the image.
+- Also fixed (Claude): the artwork's SEO description said "oil painting"; its medium, description and alt text all say acrylic, so it now says acrylic.
+- "It's Getting Hot In Here": match the show price ($4,500) once his Governor's Art Show entry is in. Waiting on Gabe to say the entry is in.

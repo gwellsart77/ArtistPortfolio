@@ -48,11 +48,11 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
   Found: 2026-11-16 by the redesign/admin chat, from reading the code (not reproduced) · Source: Claude
   Why it matters: an abandoned checkout can mark a one-of-a-kind original as sold out · Evidence/where: checkout/order routes in `server/routes.ts`
   Suggested owner/model: Opus or Sonnet chat · Depends on: none
-- [ ] [FIX] **Site price for "It's Getting Hot In Here" while it is in the Governor's Art Show** — P2 [G]
+- [ ] [FIX] **Site price for "It's Getting Hot In Here" while it is in the Governor's Art Show** — P2 [G] · decided 2026-11-17: match $4,500 once Gabe says the entry is in
   Found: 2026-11-17 by the redesign/admin close-out · Source: Claude (from Gabe's Mac DECISIONS.md, 2026-11-16)
   Why it matters: the site sells it for less than the show entry; the decision log says the site should match once the entry is submitted
   Suggested owner/model: Claude edits in Gabe's signed-in admin · Depends on: Gabe's answer
-- [ ] [FIX] **Two more data fixes: "Propaganda Madness" size; unused "Our AI curator..." settings text** — P3
+- [ ] [FIX] **One data fix left: unused "Our AI curator..." settings text** — P3 ("Propaganda Madness" size fixed to 10x8 on 2026-11-17)
   Found: 2026-11-16 by the redesign chat · Source: Claude · Evidence/where: product size 12x16 vs description 10x8 (needs Gabe's real size); Admin → Settings
   Done already (2026-11-16/17, live): IGHIH price, two hidden products back in the shop, genre wording in hero/footer/meta, shop description, "Immaginative" typo, Portland placeholder bio
 - [ ] [FIX] **Upload larger artwork photos** — P2 [G+C]
@@ -63,7 +63,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
   Found: 2026-11-16 · Why it matters: the phone header uses ~125 px before any art; `/artwork/:id/:slug` pages now exist to share · Owner: Sonnet chat
 - [ ] [IDEA] **Replit holds work GitHub lacks (podcast pages + flagship pricing)** — P3 [G]
   Found: 2026-11-16 · Why it matters: every deploy needs the backup/stash/deploy-branch path until it is pushed or dropped · Owner: Gabe decides when the podcast goes public
-- [ ] [IDEA] "Twighlight" vs "Twilight" artwork title spelling — P3
+- [x] [IDEA] "Twighlight" vs "Twilight" artwork title spelling — DONE 2026-11-17: Gabe renamed it "Dwindling Lights"; site updated (see DECISIONS)
   Found: 2026-11-17 by SEO chat in artwork data · Source: Claude
   Why it matters: people search the real word · Evidence/where: artwork #11 · Owner: Gabe [G] decides
 - [ ] [FIX] Admin page `/api/settings/<key>` 404s show as console errors on public pages — P3
