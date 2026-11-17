@@ -7,7 +7,7 @@
 **Database:** PostgreSQL via Drizzle ORM (Neon serverless)  
 **Styling:** Tailwind CSS + Radix UI (shadcn/ui patterns)  
 **Routing:** Wouter (lightweight client-side router)  
-**State:** TanStack React Query (server state) + Zustand (cart)
+**State:** TanStack React Query (server state) + Zustand (cart)  
 
 **Start here:** `docs/project/START_HERE.md` (knowledge map) → plan `docs/project/PROJECT_ROADMAP.md` →
 why `docs/project/DECISIONS.md` → newest brief in `docs/project/HANDOFFS/`. A doc that disagrees with the live site loses.
@@ -16,6 +16,10 @@ why `docs/project/DECISIONS.md` → newest brief in `docs/project/HANDOFFS/`. A 
 - 2026-11-17: Claude does all SEO research, code, testing, deploying and publishing without asking; Gabe steps in only for logins/input.
 - 2026-11-17: Use Gabe's own artist text for the site description (`shared/seo.ts`), condensed if needed, his words.
 - 2026-11-16: Never drop Replit-only work (podcast, flagship) and don't publish the podcast until he asks (see Deployment).
+- 2026-11-16: Full approval to update, fix, redesign (UI, colours), deploy and publish the website and the admin
+  without asking. Decide, log in `docs/project/DECISIONS.md`, keep going.
+- Still ask / hand to Gabe: signing in (he types his own password and 2-step code), deleting data, spending money,
+  and any wording that states facts about him (facts must be ✅ in `Artwork Marketing/data/confirmed-facts.md`).
 
 ### Scope guard
 One test for anything found mid-chat: "Can the chat's goal be finished without this?" Yes → park it in
@@ -28,12 +32,23 @@ One test for anything found mid-chat: "Can the chat's goal be finished without t
 - 2026-11-17: A brand-new Google service account is rejected by GA "Add users" for ~1 minute ("doesn't match a Google Account"); retry.
 - 2026-11-17: Search Console sitemap first showed 5 discovered pages (old cache); live sitemap has 47. Re-check later, don't "fix".
 - 2026-11-17: Built-in browser IS signed in to Replit and the Shell screenshot works there; Google (GA, Cloud, Search Console) is signed in only in Chrome.
+- 2026-11-17: Lazy page with no `<Suspense>` → React error 426 on a menu click (blank page, or "Something didn't load").
+  Fixed in aa76e83. It was first misdiagnosed as stale files after a deploy: reproduce the exact click before blaming caching.
+- 2026-11-17: Stale page files after a deploy: an open tab asks for a chunk that no longer exists. `main.tsx` reloads once on
+  `vite:preloadError` (max once per 30 s) and `AppErrorBoundary` shows a Reload screen. Keep both.
+- 2026-11-17: Typing right after Republish lands on Replit's Publishing tab. Click the Shell tab first.
+- 2026-11-17: Another chat may have pushed: `git fetch` before pushing, rebase, never force-push.
+- 2026-11-16: Hover overlays that cover the image swallow clicks (old multi-click viewer). Cards are one button; overlays `pointer-events-none`.
+- 2026-11-16: shadcn button colour comes from `--primary`, not a class on the button (cva doesn't merge it). Change the variable.
+- 2026-11-16: 2-step codes failing on a right code = clock drift. `server/mfa.ts` sets `authenticator.options = { window: 1 }`.
+- 2026-11-16: Prices, subtypes and settings are edited in Gabe's signed-in admin, never with a password typed by Claude.
+- 2026-11-16: The live API rate-limits fast test loops (HTTP 429). Test locally against a small fake API instead.
 
 ### Skills used in this project
 | Situation | Skill | How / gotcha |
 |---|---|---|
 | Deploy or drive the Replit Shell | `replit-shell-handoff` | Follow the Deployment recipe below; screenshot the shell before typing |
-| Add/edit artwork, products, releases | `website-manager` | |
+| Add/edit artwork, products, prices, settings | `website-manager` | No API key: work in Gabe's signed-in admin |
 | Gabe must do a setup step (keys, accounts) | `illustrated-setup-guide` | Publish as artifact, give him the link |
 | Any bug | `superpowers:systematic-debugging` | Root cause before fix |
 | Before saying "done" | `superpowers:verification-before-completion` | curl the live URL / screenshot |
@@ -70,8 +85,9 @@ reset or pull in a way that drops it, and don't push or publish the podcast unti
 So `git reset --hard origin/main` is only safe when Replit has nothing GitHub lacks. Check first.
 
 ```
-1. Edit files locally, commit, push to GitHub main.
-2. In Replit Shell (G=/nix/store/x5hwjkyng8385q1pqhz8wyqkq0izmhpi-replit-runtime-path/bin/git):
+1. Edit files locally, commit, push to GitHub main. Before pushing: `git fetch origin && git log --oneline HEAD..origin/main`.
+   Other chats push here too (the SEO chat did on 2026-11-17); rebase on top of their work, never force-push.
+2. In Replit Shell (G=$(command -v git || ls /nix/store/*/bin/git | head -1) — the Nix path changes):
       $G status --short; $G fetch origin; $G log --oneline origin/main..HEAD
       # If both are empty → $G reset --hard origin/main is fine.
       # If not → publish GitHub's version without the Replit-only work:
@@ -108,18 +124,26 @@ Replit will suggest this when it detects diverged histories. Always refuse — i
 
 In Replit Shell:
 ```bash
-/nix/store/x5hwjkyng8385q1pqhz8wyqkq0izmhpi-replit-runtime-path/bin/git log --oneline -3
+G=$(command -v git || ls /nix/store/*/bin/git | head -1)
+$G log --oneline -3
 curl -s -o /dev/null -w "HTTP %{http_code}" http://localhost:5000/
 ls dist/
 ```
 
-Note: `git` is not on the default PATH in Replit — use the full Nix store path above.
+Note: `git` is not on the default PATH in Replit, and the Nix store path changes between sessions
+(the old fixed path `/nix/store/x5hwjk…-replit-runtime-path/bin/git` stopped working by 2026-11-17).
+
+From outside Replit: the live JS bundle name is in the page source (`curl -s https://gabewells.com/ | grep -o 'index-[^"]*\.js'`).
+A new name after Republish = the new build is live. The live API rate-limits fast test loops (HTTP 429): slow down.
 
 ### GitHub repo
 
 - **URL:** https://github.com/gwellsart77/ArtistPortfolio
 - **Branch:** `main` (production)
-- **Local path:** `C:\Users\gwell\iCloudDrive\Art\Website\ArtistPortfolio`
+- **Local path:** `C:\Users\gwell\iCloudDrive\Art\Website\ArtistPortfolio` (Windows; unverified as of 2026-11-17)
+- **Work from a fresh clone of GitHub.** Cloud chats: attach `gwellsart77/ArtistPortfolio` with push access.
+  The Mac's iCloud `Artwork Marketing Manager/Website/ArtistPortfolio` is an old, mostly empty copy
+  (folders empty, dated April 2026; checked 2026-11-17). Don't edit or deploy from it.
 
 ---
 
@@ -151,7 +175,8 @@ client/src/
     ui/                   ← shadcn/ui components
   pages/
     admin/
-      dashboard.tsx       ← Main admin dashboard (has its own sidebar, tab-based)
+      dashboard.tsx       ← Overview + settings tabs (?tab=…); uses AdminLayout, no sidebar of its own
+      messages.tsx        ← Inbox for contact-form messages
       upload.tsx          ← Upload artwork form
       manage.tsx          ← Manage gallery (search/sort/filter)
       edit.tsx            ← Edit artwork
@@ -181,7 +206,8 @@ shared/
 - **Line** (hairlines): `#e3e0da` · **Mat** (behind artwork): `#efede8`
 - **Bronze accent** `#8b6b3e` — thin rules, active tab underline, link hover only. Never a big fill.
 - Tailwind names exist (`ink`, `paper`, `stone`, `line`, `bronze`) but pages mostly use the hex values.
-- `--primary` is ink, so shadcn default buttons are ink. The admin area still uses the old gold `#b8860b`.
+- `--primary` is ink, so shadcn default buttons are ink. The admin area uses ink too since 2026-11-16
+  (old gold `#b8860b` now only in `lib/color-palette.ts`).
 
 ### Typography
 - Headings: `font-serif` = Cormorant Garamond (weight 500). Page titles `text-4xl md:text-5xl`, centered, with a `w-16 h-px bg-[#8b6b3e]` rule.
@@ -219,6 +245,16 @@ category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 `getStatusBadge()` in `orders.tsx` uses `.toLowerCase()` matching. Known API values:
 `pending`, `processing`, `shipped`, `delivered`, `completed`, `cancelled`, `refunded`,
 `sent_to_printful`, `sent_to_gooten`, `in_production`, `on_hold`
+
+---
+
+## Testing before a deploy (what worked 2026-11-16/17)
+
+- `npm run check` and `npm run build`, then click through in a real browser (Playwright + Chrome) on a local
+  server: every `ADMIN_NAV` link plus the public pages, desktop and phone width, zero console errors.
+- Without the database: a small local server that proxies public `GET /api/*` to the live site (read-only) and
+  fakes the admin API is enough to test the UI. Prove a test catches the bug by running it on the old build first.
+- After Republish: check the bundle name changed, then click the changed screens on gabewells.com.
 
 ---
 

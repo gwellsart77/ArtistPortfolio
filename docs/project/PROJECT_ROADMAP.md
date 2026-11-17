@@ -2,12 +2,17 @@
 
 Goal (Gabe, 2026-11-17): "optimize my website for Google results for artists and art for sale direct from artist. I would also like to connect my Google Analytics data to the Google Analytics section in my admin settings so that we can utilize that to track progress and make improvements over time to the SEO and website visibility optimizations."
 
+Earlier goal, same project (Gabe, 2026-11-16): "I want to be able to click on a painting or image in the gallery, and be able to enlarge the painting to full screen, or read the details ... review the entire website ... optimized for visitors", then "go through the admin settings pages and options and help me optimize everything".
+
 Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECISIONS.md`. Plain-English plan and baseline numbers: Project doc `claude/seo-plan.md`.
 
 ## Status
 
 | Phase | What | Status |
 |---|---|---|
+| R1 | Redesign: one-click full-screen viewer with Details, gallery palette + fonts, new header/footer/shop/product/contact/about, sized images | ✅ Live 2026-11-16 |
+| R2 | Admin: security holes closed, one menu + real Overview + Inbox, 2-step login fixed and ON, blank-page fix (React 426) | ✅ Live 2026-11-17 |
+| R3 | Website leftovers: checkout stock, admin polish, 3 data fixes, mobile header, share links (queue in `HANDOFFS/2026-11-17-website-next-chat.md`) | ⏳ Not started |
 | 1 | Technical SEO foundation (server-written pages, sitemap, robots, 404s, artwork pages, structured data) | ✅ Live 2026-11-17 |
 | 2 | Google tools (GA4 tag, Search Console + sitemap, admin Google report) | ✅ Live 2026-11-17 |
 | 3 | First review: Search Console data after ~2 weeks, fix what it shows | ⏳ Not started (earliest 2026-12-01) |
@@ -39,6 +44,25 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
   Found: 2026-11-17 by SEO chat in Rich Results Test ("non-critical issues") · Source: Claude
   Why it matters: removes warnings, can show shipping cost in results · Evidence/where: `server/seo.ts` productLd · Needs Gabe's real shipping prices
   Suggested owner/model: Sonnet chat · Depends on: shipping price answer from Gabe
+- [ ] [FIX] **Checkout lowers stock before payment** — P2
+  Found: 2026-11-16 by the redesign/admin chat, from reading the code (not reproduced) · Source: Claude
+  Why it matters: an abandoned checkout can mark a one-of-a-kind original as sold out · Evidence/where: checkout/order routes in `server/routes.ts`
+  Suggested owner/model: Opus or Sonnet chat · Depends on: none
+- [ ] [FIX] **Site price for "It's Getting Hot In Here" while it is in the Governor's Art Show** — P2 [G]
+  Found: 2026-11-17 by the redesign/admin close-out · Source: Claude (from Gabe's Mac DECISIONS.md, 2026-11-16)
+  Why it matters: the site sells it for less than the show entry; the decision log says the site should match once the entry is submitted
+  Suggested owner/model: Claude edits in Gabe's signed-in admin · Depends on: Gabe's answer
+- [ ] [FIX] **Two more data fixes: "Propaganda Madness" size; unused "Our AI curator..." settings text** — P3
+  Found: 2026-11-16 by the redesign chat · Source: Claude · Evidence/where: product size 12x16 vs description 10x8 (needs Gabe's real size); Admin → Settings
+  Done already (2026-11-16/17, live): IGHIH price, two hidden products back in the shop, genre wording in hero/footer/meta, shop description, "Immaginative" typo, Portland placeholder bio
+- [ ] [FIX] **Upload larger artwork photos** — P2 [G+C]
+  Found: 2026-11-16 · Why it matters: most photos are ~720 px tall, so full screen and zoom look soft · Owner: Gabe (photos, 2000-2500 px long edge) + Claude (upload)
+- [ ] [BUILD] **Admin polish: contact-form spam filter, remove old "Back to Dashboard" headers, price-per-sq-inch box saves on every keystroke, settings.tsx (3,900 lines) cleanup incl. unused "Website Colors"** — P3
+  Found: 2026-11-16 by the admin review · Source: Claude · Owner: Sonnet chat
+- [ ] [BUILD] **Compact mobile header + per-painting share link from the viewer** — P3
+  Found: 2026-11-16 · Why it matters: the phone header uses ~125 px before any art; `/artwork/:id/:slug` pages now exist to share · Owner: Sonnet chat
+- [ ] [IDEA] **Replit holds work GitHub lacks (podcast pages + flagship pricing)** — P3 [G]
+  Found: 2026-11-16 · Why it matters: every deploy needs the backup/stash/deploy-branch path until it is pushed or dropped · Owner: Gabe decides when the podcast goes public
 - [ ] [IDEA] "Twighlight" vs "Twilight" artwork title spelling — P3
   Found: 2026-11-17 by SEO chat in artwork data · Source: Claude
   Why it matters: people search the real word · Evidence/where: artwork #11 · Owner: Gabe [G] decides
@@ -50,4 +74,5 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
   Why it matters: hides new type errors · Evidence/where: `npx tsc --noEmit -p .`
 
 ## Session notes
+- **2026-11-16/17 (redesign + admin chat):** Shipped R1 and R2 (deploys 2026-11-16 21:01, 21:26-21:54; 2026-11-17 05:40, 06:19 MT; live = aa76e83). Found and closed critical admin holes (public read of 2-step secret and password hash, login back door, unguarded admin actions); verified 401/404 live. 2-step ON. Leftovers moved here from Gabe's Mac roadmap on 2026-11-17 (this file is now the website's one backlog).
 - **2026-11-17 (SEO chat):** Built and shipped Phases 1–2 (3 deploys). Decided: server-written HTML over a Next.js rewrite; separate artwork vs shop titles; URL-prefix Search Console. Found GA was already running from a hidden env secret; kept that ID. Baseline in `claude/seo-plan.md`. Google Rich Results Test: product page valid (Product, Merchant listing, Breadcrumbs).
