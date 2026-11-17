@@ -2,6 +2,11 @@ import { authenticator } from 'otplib';
 import * as QRCode from 'qrcode';
 import { log } from './vite';
 
+// Accept the code from the previous/next 30-second step as well (standard practice).
+// With the default of 0, a code typed in the last seconds of its window, or a phone
+// clock a few seconds off, was rejected.
+authenticator.options = { window: 1 };
+
 export interface MfaSetupResponse {
   secret: string;
   qrCode: string;
