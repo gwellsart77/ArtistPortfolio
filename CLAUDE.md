@@ -129,12 +129,20 @@ shared/
 - Product titles are stored as `Original Painting: "X"`; show them with `displayTitle()` from `lib/product-display.ts`.
 - Never add placeholder bios, CVs or stock photos as fallbacks: only Gabe's real content.
 
-## Admin Interface Notes
+## Admin Interface Notes (updated 2026-11-16)
 
-- `AdminLayout.tsx` wraps admin pages with a persistent sidebar + top header
-- Admin pages that still use their own standalone layout (not yet converted): `edit.tsx`, `add-product.tsx`, `manage-products.tsx`, `orders.tsx`, `settings.tsx`
-- The dashboard (`dashboard.tsx`) has its own internal sidebar with tab navigation — it does NOT use `AdminLayout`
-- Sidebar groups: **CONTENT** / **WEBSITE** / **ACCOUNT & SECURITY** / **SUPPORT**
+- **Every admin page renders inside `AdminLayout`** (wrapped in `App.tsx`, except login,
+  forgot-password, and `manage`/`upload`/`messages`/`dashboard`, which use it directly).
+  The one menu lives in `ADMIN_NAV` in `AdminLayout.tsx`; only add links to pages that exist.
+- The dashboard's tabs live in the URL: `/admin/dashboard?tab=stripe-config|email-config|api-configuration|...`.
+  The Overview shows real counts and latest Inbox messages (no placeholder numbers).
+- Inbox: `/admin/messages` (contact-form messages, `GET /api/admin/messages`).
+- Older pages still draw their own "Back to Dashboard" headers; `.admin-main` CSS flattens their grey frame.
+- **Security rules (do not undo):** every `/api/admin/*` route requires sign-in via one middleware
+  near the top of `registerRoutes` (only login, logout, 2-step status, session check and password
+  reset are public). `GET /api/settings*` never returns secret keys to the public
+  (`isSensitiveSettingKey` in `server/middleware.ts`). Product create/edit requires sign-in.
+  Orders are marked paid only after Stripe confirms the payment. Logout = `POST /api/admin/logout`.
 
 ### Category display names
 Categories are stored as slugs (`imaginative-realism`) in the DB. Always convert for display:
