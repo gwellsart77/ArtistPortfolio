@@ -51,7 +51,7 @@ export default function AnalyticsSettings() {
   // Mutation to update analytics settings
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      return apiRequest("POST", "/api/admin/settings", { key, value });
+      return apiRequest("PUT", "/api/admin/settings", { key, value });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });

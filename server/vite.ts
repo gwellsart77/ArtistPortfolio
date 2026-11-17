@@ -86,6 +86,11 @@ export function serveStatic(app: Express) {
   // Every page URL gets index.html with its own title, description,
   // structured data and readable content (see server/seo.ts).
   app.use("*", (req, res) => {
+    // Unknown API address: a JSON error, not a web page
+    if (req.originalUrl.startsWith("/api/")) {
+      res.status(404).json({ message: `No such API route: ${req.method} ${req.originalUrl.split("?")[0]}` });
+      return;
+    }
     // A missing file (old /assets/*.js, images) is a plain 404, not a web page
     if (/\.[a-z0-9]{2,5}$/i.test(req.originalUrl.split("?")[0] ?? "") && !req.originalUrl.endsWith(".html")) {
       res.status(404).type("text/plain").end("Not found");

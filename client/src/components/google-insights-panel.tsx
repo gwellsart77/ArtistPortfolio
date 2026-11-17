@@ -124,7 +124,7 @@ export default function GoogleInsightsPanel() {
     if (verification?.value) setVerifyCode(verification.value);
   }, [verification]);
 
-  const saveSetting = (key: string, value: string) => apiRequest("POST", "/api/admin/settings", { key, value });
+  const saveSetting = (key: string, value: string) => apiRequest("PUT", "/api/admin/settings", { key, value });
 
   const saveConnection = useMutation({
     mutationFn: async () => {
@@ -132,7 +132,7 @@ export default function GoogleInsightsPanel() {
       const code = (verifyCode.match(/content="([^"]+)"/)?.[1] || verifyCode).trim();
       await saveSetting("google_analytics_property_id", propertyId.replace(/\D/g, ""));
       await saveSetting("google_search_console_site", site.trim());
-      await saveSetting("google_site_verification", code);
+      if (code) await saveSetting("google_site_verification", code);
       if (keyJson.trim()) {
         const res = await apiRequest("POST", "/api/admin/google-insights/credentials", { json: keyJson.trim() });
         if (!res.ok) throw new Error((await res.json()).message || "Key file not accepted");
