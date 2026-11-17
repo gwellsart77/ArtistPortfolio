@@ -53,6 +53,10 @@ Deployed 2026-11-17 three times this way (SEO work; live = GitHub 3b5113f; Repli
 as a "Published your App" commit (fd7a385). It is safe (also on `backup/replit-main-20261117c`) and was NOT
 published: the live build came from GitHub. `stash push` now says "No local changes", which is expected.
 Replit's `git` path changes: use `G=$(command -v git || ls /nix/store/*/bin/git | head -1)`.
+Deployed 2026-11-17 06:19 (admin Suspense fix; live = GitHub aa76e83; Replit `main` = merge 9b1a8f4).
+After clicking Republish, Replit jumps to the Publishing tab: click the Shell tab before typing.
+**Every lazy page must sit inside a `<Suspense>`** (AdminLayout and the router both provide one now); a lazy page
+without one crashes on a menu click (React error 426).
 
 ### CRITICAL — never run this from Replit Shell
 
