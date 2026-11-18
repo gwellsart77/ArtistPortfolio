@@ -654,8 +654,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Submit contact form
-  app.post("/api/contact", async (req, res) => {
+  // Spam guard: max 5 messages per hour per visitor, plus a hidden "website" field only bots fill in.
+  const contactLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { message: "Too many messages from this connection. Please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.post("/api/contact", contactLimiter, async (req, res) => {
     try {
+      // Honeypot: real visitors never see this field. Pretend success, save nothing.
+      if (typeof req.body?.website === "string" && req.body.website.trim() !== "") {
+        return res.status(201).json({ message: "Thank you for your message! We will get back to you soon." });
+      }
       const contactData = contactFormSchema.parse(req.body);
       
       // Save the contact message
@@ -3034,11 +3046,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           unitPrice: product.price,
           itemType: 'product' // Required field for order items
         });
-        
-        // Update product stock
-        await storage.updateProductStock(product.id, product.stock - item.quantity);
+        // Stock is NOT lowered here: a checkout that is never paid must not hide an
+        // original from buyers. Stock drops in PATCH /api/orders/:id/payment, after Stripe confirms.
       }
-      
+
       res.status(201).json({ 
         message: "Order created successfully",
         order
@@ -3095,6 +3106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Payment amount does not match the order" });
       }
 
+      // Only the first confirmed payment lowers stock (this route can be called twice).
+      const priorOrder = await storage.getOrderById(orderId);
+      const firstPayment = !!priorOrder && priorOrder.status === 'pending';
+
       // Update the order with the payment intent ID
       const order = await storage.updateOrderPaymentIntent(orderId, paymentIntentId);
       if (!order) {
@@ -3106,7 +3121,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check for original artwork products in this order and mark them as sold
       const orderItems = await storage.getOrderItemsWithDetails(orderId);
-      
+
+      // Lower stock now that payment is confirmed (never below zero)
+      if (firstPayment) {
+        for (const item of orderItems as any[]) {
+          const pid = item.productId ?? item.productDetails?.id;
+          if (!pid) continue;
+          const product = await storage.getProductById(pid);
+          if (!product) continue;
+          const qty = Math.max(1, Number(item.quantity) || 1);
+          await storage.updateProductStock(product.id, Math.max(0, (product.stock ?? 0) - qty));
+        }
+      }
+
       // Find original artwork items (type 'originals')
       const originalArtworkItems = orderItems.filter(item => 
         item.productDetails && item.productDetails.type === 'originals' && item.productDetails.artworkId

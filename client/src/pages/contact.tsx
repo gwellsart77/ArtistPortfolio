@@ -24,6 +24,7 @@ export default function Contact() {
   const [commissionType, setCommissionType] = useState<'paintings' | 'murals'>('paintings');
   
   // Price calculator state
+  const [honeypot, setHoneypot] = useState("");
   const [height, setHeight] = useState("");
   const [width, setWidth] = useState("");
   const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
@@ -149,7 +150,7 @@ export default function Contact() {
 
   const contactMutation = useMutation({
     mutationFn: async (formData: InsertContactMessage) => {
-      const response = await apiRequest("POST", "/api/contact", formData);
+      const response = await apiRequest("POST", "/api/contact", { ...formData, website: honeypot });
       return response.json();
     },
     onSuccess: () => {
@@ -257,6 +258,13 @@ export default function Contact() {
           <div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Spam trap: hidden from people, bots fill it in */}
+                <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+                  <label>
+                    Website
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
+                  </label>
+                </div>
                 {/* Request Type Selector - only show if commission is enabled */}
                 {commissionEnabled && (
                   <div className="mb-6">
