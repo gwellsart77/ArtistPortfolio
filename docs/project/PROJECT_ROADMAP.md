@@ -16,7 +16,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
 | 1 | Technical SEO foundation (server-written pages, sitemap, robots, 404s, artwork pages, structured data) | ✅ Live 2026-11-17 |
 | 2 | Google tools (GA4 tag, Search Console + sitemap, admin Google report) | ✅ Live 2026-11-17 |
 | 3 | First review: Search Console data after ~2 weeks, fix what it shows | ⏳ Not started (earliest 2026-12-01) |
-| 4 | Off-site visibility: Google Business Profile, links from galleries/shows, social bios | ⏳ Not started (needs Gabe for accounts) |
+| 4 | Off-site visibility: Google Business Profile, links from galleries/shows, social bios | 🔨 Profile created 2026-11-17, verification video pending (Gabe); links and bios not started |
 | 5 | Content: missing SEO descriptions/alt text, a Journal (one post per painting) | ⏳ Not started |
 
 ## Phase 3 · First review (done when: report read, top issues fixed or parked)
@@ -25,7 +25,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
 - [ ] Fix any indexing errors; note top searches in `claude/seo-plan.md`
 
 ## Phase 4 · Off-site (done when: Business Profile verified, 3+ inbound links)
-- [ ] [G+C] Google Business Profile (Denver artist / studio): Claude prepares text, Gabe signs in and verifies
+- [ ] [G+C] Google Business Profile (Denver artist / studio): CREATED 2026-11-17 as "Gabe Wells Fine Art" (Artist; service area Denver; address hidden; website set). **Left: Gabe films the Google verification video (~10 min, when he has free time; steps in Project doc `claude/google-business-profile-draft.md`).** Then Claude adds his description, Instagram/Facebook links and photos of his paintings. Not live on Google until verified.
 - [ ] [C] Draft link-request notes to Lone Tree Art Expo, Las Laguna Gallery, Deines Cultural Center, Beautiful Bizarre (Gabe sends)
 - [ ] [G] Put gabewells.com in Instagram and Facebook bios
 

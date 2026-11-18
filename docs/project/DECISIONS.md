@@ -54,3 +54,9 @@ Why and what. Who: Claude (Gabe's standing approval, 2026-11-16).
 - **Price per square inch** (Admin → Overview) saves on blur or Enter, not on every keystroke.
 - **Checked, no change needed:** the viewer's Details panel already links to the painting's own page ("Page for this work"); the phone header is already 65 px tall (measured on live, 375 px wide).
 - **Parked:** removing the old "Back to Dashboard" headers (12 admin files, cosmetic; `.admin-main` CSS already flattens them).
+
+## 2026-11-18 · Google Business Profile: created, verification postponed by Gabe
+Who: Gabe decided; Claude did the setup in Chrome (Gabe's Google account).
+- Gabe chose "hide address, serve Denver": no visitable location, service area Denver, CO. Name "Gabe Wells Fine Art", category Artist, website gabewells.com, no public phone, update emails off.
+- Google offers only video verification for this profile. Gabe: "skip this step today"; he will film the video when he has free time. Until then the profile is not visible on Google.
+- Next after verification: description (his artist text), Instagram/Facebook links, photos of his own paintings. Draft: Project doc `claude/google-business-profile-draft.md`.
