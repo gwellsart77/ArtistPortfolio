@@ -26,6 +26,7 @@ One test for anything found mid-chat: "Can the chat's goal be finished without t
 `docs/project/PROJECT_ROADMAP.md` → 🅿️ Backlog and tell Gabe in one line. No → fix it now (root cause first).
 
 ### Known failure patterns (dated)
+- 2026-11-17: Checkout used to lower stock when the order was created. It now drops in `PATCH /api/orders/:id/payment` after Stripe confirms, once. `/api/contact` has a 5/hour limit and a hidden `website` honeypot.
 - 2026-11-17: Admin settings save is `PUT /api/admin/settings` (there is no POST). Unknown `/api/*` now returns JSON 404.
 - 2026-11-17: GA was secretly fed by the `VITE_GA_MEASUREMENT_ID` Replit secret; removing the env-based init stopped tracking for ~20 min. Server now falls back to that secret.
 - 2026-11-17: Claude may not type or paste secret keys into fields: hand key steps to Gabe (illustrated guide).
@@ -108,6 +109,7 @@ as a "Published your App" commit (fd7a385). It is safe (also on `backup/replit-m
 published: the live build came from GitHub. `stash push` now says "No local changes", which is expected.
 Replit's `git` path changes: use `G=$(command -v git || ls /nix/store/*/bin/git | head -1)`.
 Deployed 2026-11-17 06:19 (admin Suspense fix; live = GitHub aa76e83; Replit `main` = merge 9b1a8f4).
+Deployed 2026-11-17 17:43 MT (stock after payment, contact spam guard, sq-inch save; live = GitHub 3a57f63, bundle `index-BoWoxkK8.js`; Replit `main` = merge d20d45b, backup `backup/replit-main-20261117d`).
 After clicking Republish, Replit jumps to the Publishing tab: click the Shell tab before typing.
 **Every lazy page must sit inside a `<Suspense>`** (AdminLayout and the router both provide one now); a lazy page
 without one crashes on a menu click (React error 426).

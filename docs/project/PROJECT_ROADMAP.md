@@ -12,7 +12,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
 |---|---|---|
 | R1 | Redesign: one-click full-screen viewer with Details, gallery palette + fonts, new header/footer/shop/product/contact/about, sized images | ✅ Live 2026-11-16 |
 | R2 | Admin: security holes closed, one menu + real Overview + Inbox, 2-step login fixed and ON, blank-page fix (React 426) | ✅ Live 2026-11-17 |
-| R3 | Website leftovers: checkout stock ✅, spam guard ✅, sq-inch save ✅, share link ✅ (already existed), mobile header ✅ (already 65 px); left: old "Back to Dashboard" headers (see DECISIONS 2026-11-17) | 🔨 Built, deploying |
+| R3 | Website leftovers: checkout stock ✅, spam guard ✅, sq-inch save ✅, share link ✅ (already existed), mobile header ✅ (already 65 px); left: old "Back to Dashboard" headers (see DECISIONS 2026-11-17) | ✅ Live 2026-11-17 (bundle index-BoWoxkK8.js) |
 | 1 | Technical SEO foundation (server-written pages, sitemap, robots, 404s, artwork pages, structured data) | ✅ Live 2026-11-17 |
 | 2 | Google tools (GA4 tag, Search Console + sitemap, admin Google report) | ✅ Live 2026-11-17 |
 | 3 | First review: Search Console data after ~2 weeks, fix what it shows | ⏳ Not started (earliest 2026-12-01) |
@@ -44,7 +44,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
   Found: 2026-11-17 by SEO chat in Rich Results Test ("non-critical issues") · Source: Claude
   Why it matters: removes warnings, can show shipping cost in results · Evidence/where: `server/seo.ts` productLd · Needs Gabe's real shipping prices
   Suggested owner/model: Sonnet chat · Depends on: shipping price answer from Gabe
-- [ ] [FIX] **Checkout lowers stock before payment** — P2
+- [x] [FIX] **Checkout lowers stock before payment** — DONE 2026-11-17, live (see DECISIONS)
   Found: 2026-11-16 by the redesign/admin chat, from reading the code (not reproduced) · Source: Claude
   Why it matters: an abandoned checkout can mark a one-of-a-kind original as sold out · Evidence/where: checkout/order routes in `server/routes.ts`
   Suggested owner/model: Opus or Sonnet chat · Depends on: none
