@@ -12,7 +12,7 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
 |---|---|---|
 | R1 | Redesign: one-click full-screen viewer with Details, gallery palette + fonts, new header/footer/shop/product/contact/about, sized images | ✅ Live 2026-11-16 |
 | R2 | Admin: security holes closed, one menu + real Overview + Inbox, 2-step login fixed and ON, blank-page fix (React 426) | ✅ Live 2026-11-17 |
-| R3 | Website leftovers: checkout stock, admin polish, 3 data fixes, mobile header, share links (queue in `HANDOFFS/2026-11-17-website-next-chat.md`) | ⏳ Not started |
+| R3 | Website leftovers: checkout stock ✅, spam guard ✅, sq-inch save ✅, share link ✅ (already existed), mobile header ✅ (already 65 px); left: old "Back to Dashboard" headers (see DECISIONS 2026-11-17) | 🔨 Built, deploying |
 | 1 | Technical SEO foundation (server-written pages, sitemap, robots, 404s, artwork pages, structured data) | ✅ Live 2026-11-17 |
 | 2 | Google tools (GA4 tag, Search Console + sitemap, admin Google report) | ✅ Live 2026-11-17 |
 | 3 | First review: Search Console data after ~2 weeks, fix what it shows | ⏳ Not started (earliest 2026-12-01) |

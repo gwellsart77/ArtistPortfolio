@@ -118,11 +118,14 @@ export default function AdminDashboard() {
   }, [pricePerSquareInchSetting]);
 
   // Handle price per square inch changes
-  const handlePricePerSquareInchChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    const value = e.target.value;
-    setPricePerSquareInch(value);
+  const handlePricePerSquareInchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    // Typing only updates the box. Saving happens on blur or Enter (not on every keystroke).
+    setPricePerSquareInch(e.target.value);
+  };
 
-    // Auto-save after typing stops
+  const savePricePerSquareInch = async (): Promise<void> => {
+    const value = pricePerSquareInch;
+    if (value === (pricePerSquareInchSetting?.value ?? "")) return; // nothing changed
     if (value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
       try {
         await apiRequest("PUT", "/api/admin/settings", {
@@ -754,6 +757,8 @@ export default function AdminDashboard() {
                         placeholder="4.00"
                         value={pricePerSquareInch}
                         onChange={handlePricePerSquareInchChange}
+                        onBlur={savePricePerSquareInch}
+                        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                         className="w-32"
                       />
                       <span className="ml-2 text-sm text-muted-foreground">per square inch</span>

@@ -46,3 +46,11 @@ Asked once in the close-out questionnaire. Who: Gabe.
 - "Twighlight" is renamed **"Dwindling Lights"** everywhere (his words: "Update to: Dwindling Lights everywhere"). Done: artwork #11 and product #6 title, description, SEO description and alt text. The page is now `/artwork/11/dwindling-lights`; old links still open it (pages match by id). Left as is: the Cloudinary image file name (`Twighlight_web_...jpg`), which visitors don't see; renaming it means re-uploading the image.
 - Also fixed (Claude): the artwork's SEO description said "oil painting"; its medium, description and alt text all say acrylic, so it now says acrylic.
 - "It's Getting Hot In Here": match the show price ($4,500) once his Governor's Art Show entry is in. Waiting on Gabe to say the entry is in.
+
+## 2026-11-17 · R3 leftovers: stock after payment, contact spam guard, sq-inch save
+Why and what. Who: Claude (Gabe's standing approval, 2026-11-16).
+- **Stock drops only after Stripe confirms payment.** `POST /api/orders` no longer lowers stock; `PATCH /api/orders/:id/payment` does, once (only while the order is `pending`), never below zero. Proof: fake-store test through the real routes passed on the new code and failed on the old code (stock dropped at order creation).
+- **Contact form spam guard:** 5 messages per hour per visitor, plus a hidden `website` field; a filled field gets a fake success and nothing is saved. Proof: fake-store test (bot saved 0, human saved, 6th rapid message got HTTP 429). No paid service.
+- **Price per square inch** (Admin → Overview) saves on blur or Enter, not on every keystroke.
+- **Checked, no change needed:** the viewer's Details panel already links to the painting's own page ("Page for this work"); the phone header is already 65 px tall (measured on live, 375 px wide).
+- **Parked:** removing the old "Back to Dashboard" headers (12 admin files, cosmetic; `.admin-main` CSS already flattens them).
