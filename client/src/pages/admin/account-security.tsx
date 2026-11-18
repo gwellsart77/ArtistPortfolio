@@ -48,6 +48,8 @@ export default function AccountSecurity() {
   const [mfaQrCode, setMfaQrCode] = useState("");
   const [mfaSecret, setMfaSecret] = useState("");
   const [showMfaSetup, setShowMfaSetup] = useState(false);
+  const [showDisableBox, setShowDisableBox] = useState(false);
+  const [disableCode, setDisableCode] = useState("");
   
   // Check if user is authenticated
   useEffect(() => {
@@ -95,6 +97,14 @@ export default function AccountSecurity() {
       verificationCode: "",
     },
   });
+
+  // The form's starting value is read before the 2-step status arrives; show the real
+  // state once it does (the switch used to show OFF while 2-step was on).
+  useEffect(() => {
+    if (mfaStatus && typeof mfaStatus === 'object' && 'enabled' in mfaStatus) {
+      mfaForm.reset({ enableMfa: !!(mfaStatus as { enabled?: boolean }).enabled, verificationCode: "" });
+    }
+  }, [mfaStatus]);
   
   // Update credentials mutation
   const updateCredentialsMutation = useMutation<any, Error, z.infer<typeof passwordFormSchema>>({
@@ -219,13 +229,14 @@ export default function AccountSecurity() {
   });
   
   // Disable MFA mutation
-  const disableMfaMutation = useMutation<unknown, Error>({
-    mutationFn: async () => {
+  const disableMfaMutation = useMutation<unknown, Error, string>({
+    mutationFn: async (mfaCode: string) => {
       try {
         const response = await fetch("/api/admin/disable-mfa", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
+          body: JSON.stringify({ mfaCode }),
         });
         
         if (!response.ok) {
@@ -240,6 +251,8 @@ export default function AccountSecurity() {
       }
     },
     onSuccess: () => {
+      setShowDisableBox(false);
+      setDisableCode("");
       setMfaEnabled(false);
       setMfaSetupComplete(false);
       toast({
@@ -254,8 +267,9 @@ export default function AccountSecurity() {
         description: error instanceof Error ? error.message : "Failed to disable MFA.",
         variant: "destructive",
       });
-      // Reset the switch to enabled since the operation failed
+      // Keep the switch on and the code box open so a new code can be tried
       mfaForm.reset({ enableMfa: true });
+      setDisableCode("");
     }
   });
   
@@ -270,8 +284,10 @@ export default function AccountSecurity() {
       // User is enabling MFA and hasn't set it up yet
       setupMfaMutation.mutate();
     } else if (!checked && mfaSetupComplete) {
-      // User is disabling MFA
-      disableMfaMutation.mutate();
+      // Turning it off needs a current code: show the code box, keep the switch on until it works
+      setDisableCode("");
+      setShowDisableBox(true);
+      mfaForm.reset({ enableMfa: true });
     }
   }
   
@@ -533,6 +549,39 @@ export default function AccountSecurity() {
                     </Form>
                   </div>
                   
+                  {/* Turning 2-step off: needs a current code from the app */}
+                  {showDisableBox && (
+                    <div className="py-4 border-t border-gray-100 space-y-3" data-testid="mfa-disable-box">
+                      <p className="text-sm font-medium">Turn off 2-step sign-in</p>
+                      <p className="text-sm text-muted-foreground">
+                        Enter the 6-digit code your authenticator app shows right now.
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Input
+                          aria-label="6-digit code"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          value={disableCode}
+                          onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ""))}
+                          className="w-36"
+                          placeholder="123456"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          disabled={disableCode.length !== 6 || disableMfaMutation.isPending}
+                          onClick={() => disableMfaMutation.mutate(disableCode)}
+                        >
+                          {disableMfaMutation.isPending ? "Turning off…" : "Turn off 2-step"}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setShowDisableBox(false)}>
+                          Keep it on
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* MFA Setup */}
                   {showMfaSetup && mfaQrCode && (
                     <div className="space-y-6 py-4 border-t border-gray-100">

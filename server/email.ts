@@ -175,6 +175,19 @@ ${formData.message}
 ${formData.subscribeToNewsletter ? 'Note: This person has subscribed to the newsletter.' : ''}
 `;
 
+  // Visitor text is shown as plain text, never as HTML (2026-11-18): stops fake links,
+  // hidden images and look-alike buttons inside the email Gabe receives.
+  const esc = (v: unknown) => String(v ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  formData = {
+    ...formData,
+    name: esc(formData.name),
+    email: esc(formData.email),
+    subject: esc(formData.subject),
+    message: esc(formData.message),
+  };
+
   // Create HTML version of the email
   const html = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

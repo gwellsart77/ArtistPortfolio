@@ -113,6 +113,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return isAdmin(req, res, next);
   });
 
+  // Fraudsters use open payment endpoints to test stolen cards; real buyers need a few tries at most.
+  // Password-reset codes: a few requests per hour is plenty for Gabe, and stops code-guessing cycles.
+  // (Added 2026-11-18, security review.)
+  app.use(["/api/create-payment-intent", "/api/checkout"], rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { message: "Too many payment attempts. Please wait a few minutes and try again." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
+  app.use(["/api/admin/reset-password", "/api/admin/apply-reset"], rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 6,
+    message: { success: false, message: "Too many password reset attempts. Please try again in an hour." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
+
+  // True when 2-step is off (nothing to check) or the code matches the saved 2-step secret.
+  const currentMfaCodeIsValid = async (code: unknown): Promise<boolean> => {
+    const enabled = (await storage.getSetting("admin_mfa_enabled"))?.value === "true";
+    const secret = (await storage.getSetting("admin_mfa_secret"))?.value;
+    if (!enabled || !secret) return true;
+    if (typeof code !== "string" || !/^\d{6}$/.test(code.trim())) return false;
+    return mfaService.verifyToken(code.trim(), secret);
+  };
+
   // Google Analytics + Search Console numbers for Admin / Analytics (read-only, sign-in required)
   registerGoogleInsightsRoutes(app);
 
@@ -1500,7 +1527,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the username from session or use default
       const username = req.session?.username || "admin";
       
-      console.log("MFA Setup - Session info:", req.session);
       console.log("MFA Setup - Username:", username);
       
       // Generate MFA setup data
@@ -1526,7 +1552,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/verify-mfa", isAdmin, async (req, res) => {
     try {
       const { verificationCode, secret } = req.body;
-      
+
+      // Replacing an active 2-step secret needs a code from the CURRENT app first
+      if (!(await currentMfaCodeIsValid(req.body?.currentMfaCode))) {
+        return res.status(401).json({ success: false, message: "2-step sign-in is already on. Turn it off first (with a current code), then set it up again." });
+      }
+
       if (!verificationCode || !secret) {
         return res.status(400).json({
           success: false,
@@ -1571,6 +1602,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Disable MFA - Demo version without authentication for testing
   app.post("/api/admin/disable-mfa", isAdmin, async (req, res) => {
     try {
+      // Turning 2-step off needs a current code from the app (2026-11-18), so someone
+      // holding a stolen session cookie can't switch it off.
+      if (!(await currentMfaCodeIsValid(req.body?.mfaCode))) {
+        return res.status(401).json({ success: false, message: "Enter the current 6-digit code from your authenticator app to turn off 2-step sign-in." });
+      }
       // Disable MFA by updating the setting
       await storage.upsertSetting({
         key: "admin_mfa_enabled",
@@ -1593,7 +1629,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update admin credentials - Demo version without authentication for testing
   app.post("/api/admin/update-credentials", isAdmin, async (req, res) => {
     try {
-      console.log("Session state:", req.session);
       console.log("Is authenticated in session:", req.session?.isAuthenticated);
       
       const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
@@ -1684,11 +1719,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/login", async (req, res) => {
-    console.log("🚀🚀🚀 EXECUTING DEBUGGED /api/admin/login HANDLER - sessionID:", req.sessionID);
     try {
       console.log("🔍 [LOGIN] === LOGIN ROUTE START ===");
-      console.log("🔍 [LOGIN] Incoming cookies:", req.cookies);
-      console.log("🔍 [LOGIN] trusted_device cookie:", req.cookies?.['trusted_device']);
       
       if (!req.body) {
         return res.status(400).json({ 
@@ -1700,7 +1732,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract and log all login parameters
       const { username, password, mfaCode, rememberDevice } = req.body;
       console.log("🔍 [LOGIN] Extracted username:", username);
-      console.log("🔍 [LOGIN] Extracted mfaCode:", mfaCode);
       console.log("🔍 [LOGIN] Extracted rememberDevice:", rememberDevice, "Type:", typeof rememberDevice);
       
       if (!username || !password) {
@@ -1801,7 +1832,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Check if device exists in database and fingerprint matches
                 const trustedDevice = await storage.getTrustedDevice(tokenData.deviceId);
                 
-                if (trustedDevice && trustedDevice.fingerprint === deviceFingerprint) {
+                const notExpired = !trustedDevice?.expiresAt || new Date(trustedDevice.expiresAt).getTime() > Date.now();
+                if (trustedDevice && notExpired && trustedDevice.fingerprint === deviceFingerprint) {
                   isDeviceTrusted = true;
                   // Update last used timestamp
                   await storage.updateTrustedDeviceLastUsed(tokenData.deviceId);
@@ -1917,7 +1949,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
               
               console.log("✅ Session regenerated and saved successfully");
-              console.log("🍪 Session ID:", req.sessionID);
               console.log("🍪 Cookie will be set with name: sessionId");
               console.log("🍪 User-Agent:", req.headers['user-agent']);
               console.log("🍪 Origin:", req.headers.origin);
@@ -2030,8 +2061,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         value: (Date.now() + 10 * 60 * 1000).toString() // 10 minutes from now
       });
       
-      // Log the reset code to the server console
-      console.log(`Password reset code generated for ${email}: ${resetCode}`);
+      // (The code itself is never written to the server log.)
       
       // Send email with reset code
       const emailSent = await sendEmail({
@@ -2624,6 +2654,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Limited edition print purchase endpoint
   app.post("/api/checkout/limited-edition", async (req, res) => {
+    // Not offered on the site (only originals are sold). Switched off 2026-11-18: it counted
+    // an edition as sold before payment, so anyone could "sell out" an edition for free.
+    if (process.env.ENABLE_PRINT_CHECKOUT !== "true") {
+      return res.status(410).json({ message: "Limited edition prints are not offered right now." });
+    }
     try {
       if (!stripe) {
         return res.status(500).json({ message: "Stripe integration is not configured" });
@@ -2742,6 +2777,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Digital artwork purchase endpoint
   app.post("/api/checkout/digital", async (req, res) => {
+    // Not offered on the site. Switched off 2026-11-18 (unused door, less to attack).
+    if (process.env.ENABLE_PRINT_CHECKOUT !== "true") {
+      return res.status(410).json({ message: "Digital downloads are not offered right now." });
+    }
     try {
       if (!stripe) {
         return res.status(500).json({ message: "Stripe integration is not configured" });
@@ -2864,18 +2903,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!stripe) {
         return res.status(500).json({ message: "Stripe integration is not configured" });
       }
-      
+
       const { amount, metadata } = req.body;
-      
-      if (typeof amount !== 'number' || amount <= 0) {
+
+      if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > 100000) {
         return res.status(400).json({ message: "Invalid amount" });
       }
-      
+      // Only the order number is accepted as payment notes (it ties the payment to one order)
+      const orderIdNote = metadata && metadata.orderId != null ? String(metadata.orderId).slice(0, 20) : undefined;
+
       // Create the payment intent with Stripe
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: "usd",
-        metadata: metadata || {},
+        metadata: orderIdNote ? { orderId: orderIdNote } : {},
         automatic_payment_methods: {
           enabled: true,
         },
@@ -3094,6 +3135,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (!["succeeded", "processing", "requires_capture"].includes(intent.status)) {
         return res.status(400).json({ message: "Payment has not completed" });
+      }
+      // The payment must have been made for THIS order, and must not already be used by
+      // another order. (Before 2026-11-18, one real payment could mark any number of
+      // other orders as paid.)
+      const intentOrderId = String(intent.metadata?.orderId ?? intent.metadata?.order_id ?? "");
+      if (intentOrderId !== String(orderId)) {
+        console.error(`Payment ${intent.id} belongs to order "${intentOrderId}", not ${orderId}`);
+        return res.status(400).json({ message: "Payment does not belong to this order" });
+      }
+      const usedBy = await db.select({ id: orders.id }).from(orders)
+        .where(eq(orders.paymentIntentId, intent.id));
+      if (usedBy.some((o) => o.id !== orderId)) {
+        console.error(`Payment ${intent.id} is already attached to another order`);
+        return res.status(400).json({ message: "Payment already used" });
       }
       // Product prices are stored in whole dollars; Stripe amounts are in cents
       const paidItems = await storage.getOrderItemsWithDetails(orderId);
@@ -3351,6 +3406,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Webhook endpoint for receiving Gooten order status updates
   // This needs to be publicly accessible without authentication
   app.post("/api/webhooks/gooten", async (req, res) => {
+    // Anyone on the internet can call this address. Until a shared secret is set
+    // (GOOTEN_WEBHOOK_TOKEN, sent as ?token=), ignore what it says (2026-11-18).
+    const gootenToken = process.env.GOOTEN_WEBHOOK_TOKEN;
+    if (!gootenToken || req.query.token !== gootenToken) {
+      return res.status(200).json({ success: false, message: "Ignored" });
+    }
     try {
       console.log("Received webhook from Gooten:", JSON.stringify(req.body).substring(0, 200));
       
@@ -3549,6 +3610,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Printful Webhook (for order status updates)
   app.post('/api/printful/webhook', async (req, res) => {
+    // Same rule as Gooten: ignore unless the shared secret PRINTFUL_WEBHOOK_TOKEN matches ?token=
+    const printfulToken = process.env.PRINTFUL_WEBHOOK_TOKEN;
+    if (!printfulToken || req.query.token !== printfulToken) {
+      return res.status(200).json({ success: false, message: "Ignored" });
+    }
     try {
       // Process Printful webhook
       const result = await processPrintfulWebhook(req.body);
@@ -5114,31 +5180,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/mfa/verify', async (req, res) => {
     console.log('!!! MFA /api/admin/mfa/verify ROUTE HANDLER ENTERED !!!', new Date().toISOString());
-    console.log('📬 Raw req.body received:', JSON.stringify(req.body));
     console.log('Content-Type Header:', req.headers['content-type']);
     
     try {
       const { secret, token } = req.body;
-      console.log(`🔑 Parsed from req.body: token="${token}", secret="${secret}"`);
 
+      // Replacing an active 2-step secret needs a code from the CURRENT app first
+      if (!(await currentMfaCodeIsValid(req.body?.currentMfaCode))) {
+        return res.status(401).json({ success: false, message: "2-step sign-in is already on. Turn it off first (with a current code), then set it up again." });
+      }
       if (!secret || !token) {
-        console.error('❌ Missing secret or token:', { secret, token });
         return res.status(400).json({ message: 'Secret and token are required' });
       }
 
       // Enhanced validation as recommended by AI consultants
       if (typeof secret !== 'string' || secret.trim() === '') {
-        console.error('❌ Invalid secret type or empty:', typeof secret, secret);
         return res.status(400).json({ message: 'Invalid MFA secret' });
       }
 
       if (typeof token !== 'string' || token.trim() === '') {
-        console.error('❌ Invalid token type or empty:', typeof token, token);
         return res.status(400).json({ message: 'Invalid MFA token' });
       }
 
       console.log('MFA Verification attempt:', { 
-        token: token,
         tokenLength: token.length, 
         secretLength: secret.length,
         timestamp: new Date().toISOString()
@@ -5160,11 +5224,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('❌ storage.updateAdminMfa IS NOT A FUNCTION or storage is not what we expect!');
       }
 
-      // Generate current expected token for debugging
-      const currentExpectedToken = authenticator.generate(secret);
-      console.log('Expected current token:', currentExpectedToken);
-      console.log('Received token:', token.trim());
-      console.log('Tokens match:', currentExpectedToken === token.trim());
 
       // Use the correct authenticator verification method
       let verified = false;
@@ -5211,6 +5270,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/mfa/disable', async (req, res) => {
     try {
+      if (!(await currentMfaCodeIsValid(req.body?.mfaCode))) {
+        return res.status(401).json({ success: false, message: "Enter the current 6-digit code from your authenticator app to turn off 2-step sign-in." });
+      }
       console.log('🔍 [MFA DISABLE] Route hit - starting MFA disable process');
       console.log('🆔 [MFA DISABLE] Handling request on Express app ID:', (app as any)._id);
       

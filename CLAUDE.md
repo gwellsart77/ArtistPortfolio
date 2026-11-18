@@ -236,6 +236,12 @@ shared/
   reset are public). `GET /api/settings*` never returns secret keys to the public
   (`isSensitiveSettingKey` in `server/middleware.ts`). Product create/edit requires sign-in.
   Orders are marked paid only after Stripe confirms the payment. Logout = `POST /api/admin/logout`.
+- **Security rules added 2026-11-18 (do not undo; why in DECISIONS.md):** a payment marks an order paid only if
+  its Stripe `metadata.orderId` is that order and no other order holds it. Turning 2-step off or replacing its
+  secret needs a current code (`currentMfaCodeIsValid`). Never log session IDs, cookies, 2-step secrets/codes,
+  reset codes or `/api/admin` reply bodies. Payment starts 10/15 min, password reset 6/hour. Private settings
+  also cover shipping address/contact and `about_full_resume`. Limited-edition/digital checkout and the
+  Gooten/Printful webhooks are off (env switches in DECISIONS). Attack tests: `scripts/security-test/README.md`.
 
 ### Category display names
 Categories are stored as slugs (`imaginative-realism`) in the DB. Always convert for display:

@@ -36,6 +36,12 @@ Live state: `CLAUDE.md` (repo root). Why things were decided: `docs/project/DECI
 
 ## 🅿️ Backlog — Future Builds & Fixes
 
+- [ ] [FIX] **Security leftovers from the 2026-11-18 review** — P3
+  Found: 2026-11-18 by the security chat · Source: Claude · Owner: Opus/Sonnet chat
+  - Major library upgrades with known advisories: drizzle-orm 0.39 → 0.45 (SQL identifier escaping; our identifiers are fixed, not user input), nodemailer 7 → 10, cloudinary 1 → 2 (+ multer-storage-cloudinary), zod 3 → 4, openai. Each needs its own test pass.
+  - Rate limits live in memory per server copy (live runs ~2–4 copies), so real limits are a few times looser and reset on restart. Option: Postgres-backed store.
+  - A 2-step code can be reused within its 30-second window (no "already used" memory).
+  - About → CV is shown as raw HTML from the admin setting; sanitize it (DOMPurify) in case the admin is ever taken over.
 - [ ] [BUILD] Google Merchant Center free listings for originals — P2
   Found: 2026-11-17 by SEO chat while adding product structured data · Source: Claude
   Why it matters: free Shopping-tab listings · Evidence/where: Rich Results Test shows valid Merchant listing on /shop/product/8

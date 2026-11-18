@@ -26,4 +26,9 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
  * A signed-in admin can still read them (the settings pages need some of them).
  */
 export const isSensitiveSettingKey = (key: string): boolean =>
-  /^admin_|secret|password|passwd|token|api_?key|private|mfa|reset_code|reset_expires|credential/i.test(key);
+  /^admin_|secret|password|passwd|token|api_?key|private|mfa|reset_code|reset_expires|credential/i.test(key) ||
+  // Gabe's studio / shipping address and shipping contact (2026-11-18)
+  /^shipping_(studio_address|drop_address|contact_)/i.test(key) ||
+  // Full resume holds Gabe's phone number; it is never shown on the public site
+  key === "about_full_resume" ||
+  /^(smtp|email)_(user|pass|host|port)/i.test(key);

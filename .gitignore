@@ -28,3 +28,6 @@ vite.config.ts.*
 # OS
 .DS_Store
 Thumbs.db
+
+# local security test build (scripts/security-test)
+dist-sectest/

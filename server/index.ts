@@ -152,8 +152,10 @@ app.use('/api/admin/settings', settingsLimiter);
 app.use('/api/admin/mfa/verify', mfaLimiter);
 
 // CRITICAL: Parse request bodies and cookies FIRST before any middleware tries to use them
-app.use(express.json({ limit: '10mb' })); // Limit payload size
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// 2 MB is far above any real form or settings save (images go through Cloudinary uploads,
+// not JSON); smaller bodies blunt memory-flood attacks. Was 10 MB until 2026-11-18.
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
 
 // Input sanitization middleware (now req.body is available)
@@ -196,19 +198,13 @@ app.use(requestLogger);
 app.use(cors(corsOptions));
 
 // Add middleware to help Safari accept cookies and log cookie debugging info (now req.cookies is available)
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   // Safari-specific headers to ensure cookies are accepted
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   
-  // Debug logging for cookie issues (especially Safari)
-  if (req.path.startsWith('/api/admin')) {
-    console.log(`🍪 [${req.method}] ${req.path}`);
-    console.log('🍪 Cookies received:', Object.keys(req.cookies || {}).join(', ') || 'NONE');
-    console.log('🍪 SessionID:', req.sessionID || 'NO SESSION');
-    console.log('🍪 Session authenticated:', req.session?.isAuthenticated || false);
-  }
-  
+  // (2026-11-18: removed per-request logging of sign-in session IDs; a log that holds
+  // them lets anyone who reads it take over the admin.)
   next();
 });
 
@@ -261,7 +257,8 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      // Admin replies can hold secrets (2-step setup, settings): never copy them into the log
+      if (capturedJsonResponse && !path.startsWith("/api/admin")) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 

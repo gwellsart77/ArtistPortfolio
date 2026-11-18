@@ -219,7 +219,9 @@ export class DatabaseStorage implements IStorage {
   async updateProductStock(id: number, quantity: number): Promise<Product | undefined> {
     const [product] = await db
       .update(products)
-      .set({ stockQuantity: quantity })
+      // The column is `stock` (there is no `stockQuantity`; that made this an empty
+      // UPDATE that crashed the paid-order step). Fixed 2026-11-18.
+      .set({ stock: quantity })
       .where(eq(products.id, id))
       .returning();
     return product;

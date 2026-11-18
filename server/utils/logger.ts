@@ -187,11 +187,21 @@ export const logger = new Logger();
 export function errorHandler(error: Error, req: any, res: any, _next: any): void {
   const requestId = req.headers['x-request-id'] || 'unknown';
   
+  // Never log sign-in cookies, passwords, codes or keys (2026-11-18)
+  const SECRET_FIELD = /pass|secret|token|code|key|cookie|authorization|card/i;
+  const redact = (obj: any): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    const out: any = Array.isArray(obj) ? [] : {};
+    for (const [k, v] of Object.entries(obj)) {
+      out[k] = SECRET_FIELD.test(k) ? '[hidden]' : (v && typeof v === 'object' ? redact(v) : v);
+    }
+    return out;
+  };
   logger.error('Unhandled server error', error, {
     url: req.url,
     method: req.method,
-    headers: req.headers,
-    body: req.body
+    headers: redact(req.headers),
+    body: redact(req.body)
   }, requestId);
 
   // Don't expose internal errors in production
