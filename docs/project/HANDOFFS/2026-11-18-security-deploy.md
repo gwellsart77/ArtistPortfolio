@@ -1,6 +1,8 @@
 # Handoff: deploy the 2026-11-18 security fixes (GitHub ca2bafe → gabewells.com)
 
-Status: code on GitHub `main`, tested locally (34/34 attack checks, 9/9 browser checks). **NOT live yet.**
+Status: **LIVE since 2026-11-24 06:02 MT** (verified: resume 404, limited-edition 410, Gooten webhook Ignored, admin 401s, all public pages 200, no console errors, podcast still 404). Only open item: queue step 4 (Gabe checks the 2-step switch shows ON).
+
+Original status: code on GitHub `main`, tested locally (34/34 attack checks, 9/9 browser checks).
 Why not: Replit is signed in only in the built-in browser, and the Claude desktop app went offline mid-chat.
 Chrome showed Replit's logged-out page. Claude does not sign in for Gabe.
 

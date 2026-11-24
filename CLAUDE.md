@@ -110,6 +110,7 @@ published: the live build came from GitHub. `stash push` now says "No local chan
 Replit's `git` path changes: use `G=$(command -v git || ls /nix/store/*/bin/git | head -1)`.
 Deployed 2026-11-17 06:19 (admin Suspense fix; live = GitHub aa76e83; Replit `main` = merge 9b1a8f4).
 Deployed 2026-11-17 17:43 MT (stock after payment, contact spam guard, sq-inch save; live = GitHub 3a57f63, bundle `index-BoWoxkK8.js`; Replit `main` = merge d20d45b, backup `backup/replit-main-20261117d`).
+Deployed 2026-11-24 06:02 MT (security fixes; live = GitHub 1d78da8, Replit's own build gave bundle `index-Dt6JMxJ3.js`, not the `index-DaRF_jKa.js` of the Shell build: judge a deploy by behaviour checks, not the exact name; Replit `main` = merge 988bef0, backup `backup/replit-main-20261124`). **Run `npm install` on the deploy branch before `npm run build` and again on `main` after the merge** whenever package-lock.json changed. The merge back into Replit `main` can conflict in `.gitignore` and `package-lock.json` (Replit has its own lines): keep both sides of `.gitignore`, take GitHub's lockfile (`checkout --theirs`), `npm install`, commit.
 After clicking Republish, Replit jumps to the Publishing tab: click the Shell tab before typing.
 **Every lazy page must sit inside a `<Suspense>`** (AdminLayout and the router both provide one now); a lazy page
 without one crashes on a menu click (React error 426).

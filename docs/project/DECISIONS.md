@@ -61,7 +61,7 @@ Who: Gabe decided; Claude did the setup in Chrome (Gabe's Google account).
 - Google offers only video verification for this profile. Gabe: "skip this step today"; he will film the video when he has free time. Until then the profile is not visible on Google.
 - Next after verification: description (his artist text), Instagram/Facebook links, photos of his own paintings. Draft: Project doc `claude/google-business-profile-draft.md`.
 
-## 2026-11-18 · Security review: 9 holes closed, 1 checkout crash fixed
+## 2026-11-18 · Security review: 9 holes closed, 1 checkout crash fixed (live 2026-11-24)
 Who: Claude (Opus), Gabe's request "be the security expert" + standing approval. Proof: 33 attack checks + 9 browser checks in `scripts/security-test/` pass on the new code; 18 of the 33 fail on the old code. Run against a throwaway local database and fake Stripe, never the live site.
 - **Payment reuse (high).** `PATCH /api/orders/:id/payment` accepted any successful Stripe payment that was big enough, so one real payment could mark other orders paid (and their originals sold). Now the payment must carry this order's number and can't already belong to another order. `/api/create-payment-intent` keeps only `orderId` as payment notes and caps amounts.
 - **Checkout crash (high, from 2026-11-17).** `updateProductStock` wrote a column that doesn't exist (`stockQuantity`; the column is `stock`), so after a real payment the server errored: the buyer saw "Payment Error" and the original stayed "available". Fixed. TypeScript had flagged it (TS2353).
